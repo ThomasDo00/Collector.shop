@@ -1,0 +1,55 @@
+{
+  "name": "@collector/backend",
+  "version": "1.0.0",
+  "description": "Collector.shop Backend API - Fastify + TypeScript",
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "lint": "eslint src --ext .ts --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "migrate": "npx tsx ../node_modules/knex/bin/cli.js migrate:latest --knexfile src/core/database/knexfile.ts",
+    "migrate:make": "npx tsx ../node_modules/knex/bin/cli.js migrate:make --knexfile src/core/database/knexfile.ts -x ts",
+    "migrate:rollback": "npx tsx ../node_modules/knex/bin/cli.js migrate:rollback --knexfile src/core/database/knexfile.ts",
+    "seed": "npx tsx ../node_modules/knex/bin/cli.js seed:run --knexfile src/core/database/knexfile.ts",
+    "seed:make": "npx tsx ../node_modules/knex/bin/cli.js seed:make --knexfile src/core/database/knexfile.ts -x ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^9.0.1",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/jwt": "^8.0.0",
+    "@fastify/rate-limit": "^9.1.0",
+    "@fastify/sensible": "^5.5.0",
+    "@fastify/swagger": "^8.14.0",
+    "@fastify/swagger-ui": "^3.0.0",
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.26.0",
+    "knex": "^3.1.0",
+    "pg": "^8.11.3",
+    "pino": "^8.19.0",
+    "pino-pretty": "^10.3.1",
+    "redis": "^4.6.13",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/node": "^20.11.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@vitest/coverage-v8": "^1.3.0",
+    "eslint": "^8.57.0",
+    "testcontainers": "^10.7.0",
+    "tsx": "^4.7.1",
+    "typescript": "^5.4.0",
+    "vitest": "^1.3.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
