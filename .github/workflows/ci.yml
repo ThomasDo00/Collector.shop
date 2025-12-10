@@ -194,14 +194,19 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Run SonarCloud scanner
-        uses: sonarsource/sonarcloud-github-action@v1
-        env:
-          # Provide SONAR_TOKEN (required)
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: |
-            -Dsonar.projectKey=collector-shop
-            -Dsonar.sources=.
-            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/.github/**
-            -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info,backend/coverage/lcov.info
+        - name: Download and extract SonarScanner CLI
+          run: |
+            curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.1.3023-linux.zip
+            unzip -q sonar-scanner.zip
+
+        - name: Run SonarScanner CLI
+          env:
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          run: |
+            ./sonar-scanner-4.8.1.3023-linux/bin/sonar-scanner \
+              -Dsonar.projectKey=collector-shop \
+              -Dsonar.host.url=https://sonarcloud.io \
+              -Dsonar.sources=. \
+              -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/.github/** \
+              -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info,backend/coverage/lcov.info \
+              -Dsonar.login=$SONAR_TOKEN
