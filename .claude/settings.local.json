@@ -10,7 +10,8 @@
       "Bash(npm run dev:backend:*)",
       "Bash(lsof:*)",
       "Bash(xargs:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm test:*)"
     ],
     "deny": [],
     "ask": []
