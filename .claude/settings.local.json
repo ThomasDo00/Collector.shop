@@ -10,7 +10,16 @@
       "Bash(npm run dev:backend:*)",
       "Bash(lsof:*)",
       "Bash(xargs:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm test:*)",
+      "Bash(tree:*)",
+      "WebFetch(domain:www.lacoste.com)",
+      "WebSearch",
+      "Bash(npx tailwindcss:*)",
+      "Bash(./node_modules/.bin/tailwindcss:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm ls:*)"
     ],
     "deny": [],
     "ask": []

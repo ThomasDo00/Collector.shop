@@ -23,8 +23,9 @@ export interface IUserRepository {
 
   /**
    * Create a new user
+   * Accepts the create DTO without the plaintext password; instead requires a passwordHash.
    */
-  create(userData: CreateUserDTO & { passwordHash: string }): Promise<User>;
+  create(userData: Omit<CreateUserDTO, 'password'> & { passwordHash: string }): Promise<User>;
 
   /**
    * Update an existing user

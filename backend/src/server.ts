@@ -5,6 +5,7 @@ import rateLimit from '@fastify/rate-limit';
 import sensible from '@fastify/sensible';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
+import jwt from '@fastify/jwt';
 
 import { env } from '@core/config/env.js';
 import { logger } from '@core/logger/index.js';
@@ -52,6 +53,11 @@ async function registerPlugins() {
 
   // Sensible defaults (better error handling)
   await fastify.register(sensible);
+
+  // JWT authentication
+  await fastify.register(jwt, {
+    secret: env.JWT_SECRET,
+  });
 
   // Swagger documentation
   await fastify.register(swagger, {

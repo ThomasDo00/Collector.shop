@@ -1,0 +1,101 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  # Check PR title format
+  pr-title:
+    name: Check PR Title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            chore
+          requireScope: false
+
+  # Check for merge conflicts
+  conflicts:
+    name: Check Merge Conflicts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for merge conflicts
+        run: |
+          if git grep -l '<<<<<<< HEAD' -- . ':!.github'; then
+            echo "❌ Merge conflicts detected"
+            exit 1
+          fi
+          echo "✅ No merge conflicts"
+
+  # Code size check
+  size:
+    name: Check Bundle Size
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build:frontend
+
+      - name: Check bundle size
+        run: |
+          SIZE=$(du -sb frontend/dist | cut -f1)
+          SIZE_MB=$(echo "scale=2; $SIZE / 1048576" | bc)
+          echo "Bundle size: ${SIZE_MB}MB"
+          echo "## Bundle Size: ${SIZE_MB}MB" >> $GITHUB_STEP_SUMMARY
+          
+          # Warn if bundle is larger than 5MB
+          if (( $(echo "$SIZE_MB > 5" | bc -l) )); then
+            echo "⚠️ Bundle size is larger than 5MB"
+            echo "⚠️ Warning: Bundle size exceeds 5MB" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Security audit
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Check for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD

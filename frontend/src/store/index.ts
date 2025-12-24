@@ -1,18 +1,22 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 
+// Import reducers
+import authReducer from '@/features/auth/authSlice';
+
 export const store = configureStore({
   reducer: {
-    // Add slices here as the app grows
-    // auth: authReducer,
-    // catalog: catalogReducer,
-    // cart: cartReducer,
+    auth: authReducer,
+    // catalog: catalogReducer, // Coming in Phase 4
+    // cart: cartReducer,       // Coming in Phase 7
+    // user: userReducer,       // Coming in Phase 6
+    // notification: notificationReducer, // Coming later
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
         // Ignore these action types for serializable check
-        ignoredActions: [],
+        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
       },
     }),
   devTools: import.meta.env.DEV,

@@ -32,7 +32,7 @@ export class PostgresUserRepository implements IUserRepository {
     return row ? this.mapToUser(row) : null;
   }
 
-  async create(userData: CreateUserDTO & { passwordHash: string }): Promise<User> {
+  async create(userData: Omit<CreateUserDTO, 'password'> & { passwordHash: string }): Promise<User> {
     const now = new Date();
     const id = randomUUID();
 
