@@ -208,7 +208,7 @@ jobs:
           
           # Run scanner
           sonar-scanner \
-            -Dsonar.projectKey=collector-shop \
+            -Dsonar.projectKey=Collector.shop \
             -Dsonar.organization=ressourcesre \
             -Dsonar.sources=. \
             -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/.github/** \
