@@ -208,8 +208,8 @@ jobs:
           
           # Run scanner
           sonar-scanner \
-            -Dsonar.projectKey=Collector.shop \
-            -Dsonar.organization=ressourcesre \
+            -Dsonar.projectKey=ThomasDo00_Collector.shop \
+            -Dsonar.organization=cesimaalsip5 \
             -Dsonar.sources=. \
             -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/.github/** \
             -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info,backend/coverage/lcov.info \
