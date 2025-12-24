@@ -83,7 +83,7 @@ function ProductDetailPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white" data-product-id={_id}>
       {/* Breadcrumb */}
       <div className="border-b bg-gray-50">
         <div className="container-page py-4">
