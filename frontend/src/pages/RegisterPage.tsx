@@ -26,8 +26,8 @@ const registerSchema = z.object({
     .regex(/[0-9]/, 'Le mot de passe doit contenir au moins un chiffre')
     .regex(/[^a-zA-Z0-9]/, 'Le mot de passe doit contenir au moins un caractere special'),
   confirmPassword: z.string(),
-  acceptTerms: z.literal(true, {
-    errorMap: () => ({ message: 'Vous devez accepter les conditions d\'utilisation' }),
+  acceptTerms: z.boolean().refine((val) => val === true, {
+    message: 'Vous devez accepter les conditions d\'utilisation',
   }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Les mots de passe ne correspondent pas',

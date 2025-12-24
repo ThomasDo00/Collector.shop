@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 
 const API_BASE_URL = '/api';
 
@@ -52,17 +52,20 @@ export const hasStoredAuth = (): boolean => {
 
 // Flag to prevent multiple refresh attempts
 let isRefreshing = false;
+type RefreshResolve = (token: string | null) => void;
+type RefreshReject = (error: AxiosError | Error) => void;
+
 let failedQueue: Array<{
-  resolve: (token: string) => void;
-  reject: (error: unknown) => void;
+  resolve: RefreshResolve;
+  reject: RefreshReject;
 }> = [];
 
-const processQueue = (error: unknown, token: string | null = null) => {
+const processQueue = (error: AxiosError | Error | null, token: string | null = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
     } else {
-      prom.resolve(token!);
+      prom.resolve(token);
     }
   });
   failedQueue = [];
@@ -79,14 +82,16 @@ apiClient.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error: AxiosError) => {
+    throw error;
+  }
 );
 
 /**
  * Response interceptor - handle errors and token refresh
  */
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response: AxiosResponse) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
@@ -94,16 +99,18 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         // Wait for the refresh to complete
-        return new Promise((resolve, reject) => {
+        return new Promise<string | null>((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then((token) => {
-            if (originalRequest.headers) {
+          .then((token: string | null) => {
+            if (token && originalRequest.headers) {
               originalRequest.headers.Authorization = `Bearer ${token}`;
             }
             return apiClient(originalRequest);
           })
-          .catch((err) => Promise.reject(err));
+          .catch((err: AxiosError | Error) => {
+            throw err;
+          });
       }
 
       originalRequest._retry = true;
@@ -114,7 +121,7 @@ apiClient.interceptors.response.use(
       if (!refreshToken) {
         clearTokens();
         window.location.href = '/login';
-        return Promise.reject(error);
+        throw error;
       }
 
       try {
@@ -131,17 +138,23 @@ apiClient.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         }
         return apiClient(originalRequest);
-      } catch (refreshError) {
+      } catch (err: unknown) {
+        const refreshError: AxiosError | Error = axios.isAxiosError(err)
+          ? err
+          : err instanceof Error
+          ? err
+          : new Error(String(err));
+
         processQueue(refreshError, null);
         clearTokens();
         window.location.href = '/login';
-        return Promise.reject(refreshError);
+        throw refreshError;
       } finally {
         isRefreshing = false;
       }
     }
 
-    return Promise.reject(error);
+    throw error;
   }
 );
 
