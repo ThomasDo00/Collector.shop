@@ -34,7 +34,7 @@ function SearchBar({
   isLoading = false,
   fullWidth = false,
   className,
-}: SearchBarProps) {
+}: Readonly<SearchBarProps>) {
   const [query, setQuery] = useState(value);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);

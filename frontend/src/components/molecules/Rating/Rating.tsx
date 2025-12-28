@@ -41,7 +41,7 @@ function Rating({
   isTrustedSeller = false,
   readonly: _readonly = false,
   className,
-}: RatingProps) {
+}: Readonly<RatingProps>) {
   const styles = sizeStyles[size];
   const roundedValue = Math.round(value * 2) / 2; // Round to nearest 0.5
   const fullStars = Math.floor(roundedValue);
@@ -83,7 +83,7 @@ function Rating({
       </div>
 
       <span className={clsx('font-medium text-accent', styles.text)}>
-        {value.toFixed(1)}
+        {new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value)}
       </span>
 
       {showCount && reviewCount !== undefined && (

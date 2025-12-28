@@ -148,6 +148,10 @@ function CatalogPage() {
 
   const searchQuery = searchParams.get('q');
 
+  const pluralSuffix = filteredProducts.length !== 1 ? 's' : '';
+  const minPriceLabel = filters.minPrice ? `${filters.minPrice}€` : '0€';
+  const maxPriceLabel = filters.maxPrice ? `${filters.maxPrice}€` : '∞';
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -164,7 +168,7 @@ function CatalogPage() {
                   : 'Tous les articles'}
             </Typography>
             <p className="text-gray-500 mt-1">
-              {filteredProducts.length} article{filteredProducts.length !== 1 ? 's' : ''} trouve{filteredProducts.length !== 1 ? 's' : ''}
+              {filteredProducts.length} article{pluralSuffix} trouve{pluralSuffix}
             </p>
           </div>
         </div>
@@ -232,7 +236,7 @@ function CatalogPage() {
                 })}
                 {(filters.minPrice || filters.maxPrice) && (
                   <span className="inline-flex items-center gap-1 px-3 py-1 bg-primary-50 text-primary-800 rounded-full text-sm">
-                    {filters.minPrice ? `${filters.minPrice}€` : '0€'} - {filters.maxPrice ? `${filters.maxPrice}€` : '∞'}
+                    {minPriceLabel} - {maxPriceLabel}
                     <button
                       onClick={() => setFilters({ ...filters, minPrice: undefined, maxPrice: undefined })}
                       className="hover:text-primary-900"
@@ -274,7 +278,14 @@ function CatalogPage() {
           {/* Overlay */}
           <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            role="button"
+            tabIndex={0}
             onClick={() => setIsMobileFilterOpen(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+                setIsMobileFilterOpen(false);
+              }
+            }}
           />
 
           {/* Drawer */}

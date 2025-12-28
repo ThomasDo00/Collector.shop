@@ -66,7 +66,7 @@ function Alert({
   action,
   className,
   children,
-}: AlertProps) {
+}: Readonly<AlertProps>) {
   const styles = variantStyles[variant];
 
   return (

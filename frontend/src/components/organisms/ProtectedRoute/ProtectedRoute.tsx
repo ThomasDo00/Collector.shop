@@ -22,7 +22,7 @@ export interface ProtectedRouteProps {
 function ProtectedRoute({
   requiredRole,
   redirectTo = '/login',
-}: ProtectedRouteProps) {
+}: Readonly<ProtectedRouteProps>) {
   const location = useLocation();
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const isLoading = useAppSelector(selectAuthLoading);

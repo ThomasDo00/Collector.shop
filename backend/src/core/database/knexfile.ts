@@ -8,7 +8,16 @@ config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const databaseUrl = process.env.DATABASE_URL || 'postgresql://collector:collector_dev_password@localhost:5433/collector';
+// DATABASE_URL must be defined via environment variables (.env or CI/CD secrets)
+// Never hardcode credentials in the source code
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  throw new Error(
+    'DATABASE_URL is not defined. Please set it in your .env file or environment variables.\n' +
+    'Format: postgresql://user:password@host:port/database'
+  );
+}
 
 const knexConfig: { [key: string]: Knex.Config } = {
   development: {

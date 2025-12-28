@@ -19,7 +19,7 @@ export interface BreadcrumbProps {
 /**
  * Breadcrumb navigation component
  */
-function Breadcrumb({ items, className }: BreadcrumbProps) {
+function Breadcrumb({ items, className }: Readonly<BreadcrumbProps>) {
   if (items.length === 0) return null;
 
   return (

@@ -58,7 +58,7 @@ function Avatar({
   showStatus = false,
   isOnline = false,
   className,
-}: AvatarProps) {
+}: Readonly<AvatarProps>) {
   const initials = getInitials(fallback || alt);
 
   return (

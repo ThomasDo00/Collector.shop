@@ -41,7 +41,7 @@ function Badge({
   icon,
   className,
   children,
-}: BadgeProps) {
+}: Readonly<BadgeProps>) {
   return (
     <span
       className={clsx(

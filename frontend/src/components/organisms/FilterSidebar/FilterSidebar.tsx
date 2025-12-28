@@ -35,7 +35,7 @@ function FilterSidebar({
   onFilterChange,
   onClose,
   isMobile = false,
-}: FilterSidebarProps) {
+}: Readonly<FilterSidebarProps>) {
   const [localFilters, setLocalFilters] = useState<ProductFilters>(filters);
   const [expandedSections, setExpandedSections] = useState({
     categories: true,
@@ -220,7 +220,7 @@ interface FilterSectionProps {
   children: React.ReactNode;
 }
 
-function FilterSection({ title, isExpanded, onToggle, children }: FilterSectionProps) {
+function FilterSection({ title, isExpanded, onToggle, children }: Readonly<FilterSectionProps>) {
   return (
     <div className="border-b border-gray-200 py-4">
       <button
