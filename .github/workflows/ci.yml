@@ -1,5 +1,13 @@
 name: CI
 
+# ============================================
+# Security Policy
+# ============================================
+# TEST CREDENTIALS: In clear text below (safe - ephemeral DB, destroyed after tests)
+# PROD CREDENTIALS: Use GitHub Secrets ONLY (secrets.VARIABLE_NAME)
+# Never hardcode sensitive data in source code (.env is in .gitignore)
+# ============================================
+
 on:
   push:
     branches: [main, develop]
@@ -75,6 +83,7 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
+          # ✅ SAFE: Test credentials (ephemeral DB, destroyed after tests)
           POSTGRES_USER: collector
           POSTGRES_PASSWORD: collector_test_password
           POSTGRES_DB: collector_test
@@ -97,6 +106,9 @@ jobs:
           --health-retries 5
 
     env:
+      # ✅ SAFE: Test credentials only (valid for CI/test environment)
+      # For PRODUCTION: Use GitHub Secrets (Settings → Secrets → Actions)
+      # Example: DATABASE_URL: ${{ secrets.DATABASE_URL_PROD }}
       DATABASE_URL: postgresql://collector:collector_test_password@localhost:5432/collector_test
       REDIS_URL: redis://localhost:6379
       JWT_SECRET: test-jwt-secret-for-ci-minimum-32-chars
@@ -197,6 +209,7 @@ jobs:
           java-version: '17'
 
       - name: Download and run SonarScanner
+        # ✅ SONAR_TOKEN comes from GitHub Secrets (encrypted, never visible in logs)
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
