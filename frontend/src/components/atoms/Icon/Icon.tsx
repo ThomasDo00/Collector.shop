@@ -176,7 +176,7 @@ function Icon({
   className,
   ariaLabel,
   ariaHidden = true,
-}: IconProps) {
+}: Readonly<IconProps>) {
   const IconComponent = iconMap[name];
 
   if (!IconComponent) {

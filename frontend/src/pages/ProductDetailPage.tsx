@@ -109,7 +109,7 @@ function ProductDetailPage() {
             <div className="flex gap-3">
               {product.images.map((image, index) => (
                 <button
-                  key={index}
+                  key={image}
                   onClick={() => setSelectedImage(index)}
                   className={`
                     w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors

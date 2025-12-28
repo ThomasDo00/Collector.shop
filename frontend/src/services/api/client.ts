@@ -95,67 +95,62 @@ apiClient.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // Handle 401 - try to refresh token
     if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        // Wait for the refresh to complete
-        return new Promise<string | null>((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token: string | null) => {
-            if (token && originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-            }
-            return apiClient(originalRequest);
-          })
-          .catch((err: AxiosError | Error) => {
-            throw err;
-          });
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      const refreshToken = getRefreshToken();
-
-      if (!refreshToken) {
-        clearTokens();
-        window.location.href = '/login';
-        throw error;
-      }
-
-      try {
-        const response = await axios.post(`${API_BASE_URL}/users/refresh`, {
-          refreshToken,
-        });
-
-        const { accessToken, refreshToken: newRefreshToken } = response.data.data;
-        setTokens(accessToken, newRefreshToken);
-
-        processQueue(null, accessToken);
-
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        }
-        return apiClient(originalRequest);
-      } catch (err: unknown) {
-        const refreshError: AxiosError | Error = axios.isAxiosError(err)
-          ? err
-          : err instanceof Error
-          ? err
-          : new Error(String(err));
-
-        processQueue(refreshError, null);
-        clearTokens();
-        window.location.href = '/login';
-        throw refreshError;
-      } finally {
-        isRefreshing = false;
-      }
+      return handleTokenRefresh(originalRequest);
     }
 
     throw error;
   }
 );
+
+/**
+ * Handle token refresh flow. Extracted to reduce cognitive complexity in interceptor.
+ */
+async function handleTokenRefresh(originalRequest: InternalAxiosRequestConfig & { _retry?: boolean }) {
+  if (isRefreshing) {
+    return new Promise<AxiosResponse | null>((resolve, reject) => {
+      failedQueue.push({ resolve: (token: string | null) => {
+        if (token && originalRequest.headers) originalRequest.headers.Authorization = `Bearer ${token}`;
+        resolve(apiClient(originalRequest));
+        return token;
+      }, reject });
+    });
+  }
+
+  originalRequest._retry = true;
+  isRefreshing = true;
+
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) {
+    clearTokens();
+    window.location.href = '/login';
+    isRefreshing = false;
+    throw new Error('No refresh token available');
+  }
+
+  try {
+    const response = await axios.post(`${API_BASE_URL}/users/refresh`, { refreshToken });
+    const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+    setTokens(accessToken, newRefreshToken);
+
+    processQueue(null, accessToken);
+
+    if (originalRequest.headers) originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+    return apiClient(originalRequest);
+  } catch (err: unknown) {
+    const refreshError: AxiosError | Error = axios.isAxiosError(err)
+      ? err
+      : err instanceof Error
+      ? err
+      : new Error(String(err));
+
+    processQueue(refreshError, null);
+    clearTokens();
+    window.location.href = '/login';
+    throw refreshError;
+  } finally {
+    isRefreshing = false;
+  }
+}
 
 export default apiClient;

@@ -38,6 +38,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
   ) => {
     const inputId = id || props.name;
     const hasError = Boolean(error);
+    let describedBy: string | undefined;
+    if (hasError) describedBy = `${inputId}-error`;
+    else if (helpText) describedBy = `${inputId}-help`;
 
     return (
       <div className={clsx('flex flex-col', fullWidth && 'w-full')}>
@@ -64,9 +67,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             disabled={disabled}
             required={required}
             aria-invalid={hasError}
-            aria-describedby={
-              hasError ? `${inputId}-error` : helpText ? `${inputId}-help` : undefined
-            }
+            aria-describedby={describedBy}
             className={clsx(
               'w-full px-4 py-3 bg-white border rounded-md',
               'text-accent placeholder:text-gray-400',

@@ -76,7 +76,7 @@ function Typography({
   className,
   children,
   ...props
-}: TypographyProps) {
+}: Readonly<TypographyProps>) {
   const Component = as || defaultElements[variant];
 
   return (

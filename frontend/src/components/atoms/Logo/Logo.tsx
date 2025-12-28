@@ -28,7 +28,7 @@ function Logo({
   showText = true,
   linkToHome = true,
   className,
-}: LogoProps) {
+}: Readonly<LogoProps>) {
   const logoContent = (
     <div
       className={clsx(

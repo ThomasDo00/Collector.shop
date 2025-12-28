@@ -69,7 +69,7 @@ function PriceDisplay({
   size = 'md',
   showCommission = false,
   className,
-}: PriceDisplayProps) {
+}: Readonly<PriceDisplayProps>) {
   const styles = sizeStyles[size];
   const hasDiscount = originalPrice && originalPrice > price;
   const discountPercent = hasDiscount ? calculateDiscount(price, originalPrice) : 0;

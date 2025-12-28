@@ -33,7 +33,7 @@ function Spinner({
   color = 'primary',
   className,
   label = 'Chargement...',
-}: SpinnerProps) {
+}: Readonly<SpinnerProps>) {
   return (
     <div
       role="status"

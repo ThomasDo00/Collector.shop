@@ -13,7 +13,7 @@ interface ProductCardProps {
 /**
  * Product card component for displaying products in grids
  */
-function ProductCard({ product, onFavoriteToggle, isFavorite = false }: ProductCardProps) {
+function ProductCard({ product, onFavoriteToggle, isFavorite = false }: Readonly<ProductCardProps>) {
   const [isHovered, setIsHovered] = useState(false);
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
