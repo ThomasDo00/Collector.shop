@@ -22,8 +22,8 @@ const MOCK_CART = {
   ],
   subtotal: 450,
   commission: 22.5, // 5%
-  shipping: 8.90,
-  total: 481.40,
+  shipping: 8.9,
+  total: 481.4,
 };
 
 // Shipping validation schema

@@ -161,16 +161,10 @@ function Header() {
                 {/* User Dropdown */}
                 {isUserMenuOpen && (
                   <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      role="button"
-                      tabIndex={0}
+                    <button
+                      className="fixed inset-0 z-40 bg-transparent cursor-default"
                       onClick={() => setIsUserMenuOpen(false)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
-                          setIsUserMenuOpen(false);
-                        }
-                      }}
+                      aria-label="Fermer le menu"
                     />
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50 animate-fade-in">
                       <div className="px-4 py-2 border-b border-gray-100">

@@ -18,12 +18,12 @@ const registerSchema = z.object({
     .string()
     .min(3, 'Le nom d\'utilisateur doit faire au moins 3 caracteres')
     .max(30, 'Le nom d\'utilisateur ne peut pas depasser 30 caracteres')
-    .regex(/^[a-zA-Z0-9_]+$/, 'Seuls les lettres, chiffres et underscores sont autorises'),
+    .regex(/^\w+$/, 'Seuls les lettres, chiffres et underscores sont autorises'),
   password: z
     .string()
     .min(8, 'Le mot de passe doit faire au moins 8 caracteres')
     .regex(/[A-Z]/, 'Le mot de passe doit contenir au moins une majuscule')
-    .regex(/[0-9]/, 'Le mot de passe doit contenir au moins un chiffre')
+    .regex(/\d/, 'Le mot de passe doit contenir au moins un chiffre')
     .regex(/[^a-zA-Z0-9]/, 'Le mot de passe doit contenir au moins un caractere special'),
   confirmPassword: z.string(),
   acceptTerms: z.boolean().refine((val) => val === true, {
@@ -67,7 +67,7 @@ function RegisterPage() {
   const passwordChecks = [
     { label: '8 caracteres minimum', valid: password.length >= 8 },
     { label: 'Une majuscule', valid: /[A-Z]/.test(password) },
-    { label: 'Un chiffre', valid: /[0-9]/.test(password) },
+    { label: 'Un chiffre', valid: /\d/.test(password) },
     { label: 'Un caractere special', valid: /[^a-zA-Z0-9]/.test(password) },
   ];
 

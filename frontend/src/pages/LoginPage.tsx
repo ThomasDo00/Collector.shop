@@ -100,7 +100,7 @@ function LoginPage() {
                 className="text-gray-400 hover:text-gray-600 transition-colors"
                 aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
               >
-                <Icon name={showPassword ? 'eye' : 'eye'} size="sm" />
+                <Icon name={showPassword ? 'eye-off' : 'eye'} size="sm" />
               </button>
             }
           />

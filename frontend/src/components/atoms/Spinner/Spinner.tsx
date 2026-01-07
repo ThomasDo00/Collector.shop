@@ -35,9 +35,9 @@ function Spinner({
   label = 'Chargement...',
 }: Readonly<SpinnerProps>) {
   return (
-    <div
-      role="status"
+    <output
       aria-label={label}
+      aria-live="polite"
       className={clsx(
         'animate-spin rounded-full',
         sizeStyles[size],
@@ -46,7 +46,7 @@ function Spinner({
       )}
     >
       <span className="sr-only">{label}</span>
-    </div>
+    </output>
   );
 }
 

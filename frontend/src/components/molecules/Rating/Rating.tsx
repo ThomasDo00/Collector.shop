@@ -52,9 +52,9 @@ function Rating({
     <div className={clsx('flex items-center gap-1.5', className)}>
       <div className="flex items-center" aria-label={`Note: ${value} sur ${maxValue}`}>
         {/* Full stars */}
-        {Array.from({ length: fullStars }).map((_, i) => (
+        {Array.from({ length: fullStars }, (_, i) => (
           <Icon
-            key={`full-${i}`}
+            key={`full-${fullStars}-${i}`}
             name="star-solid"
             size={styles.icon}
             className="text-warning-500"
@@ -72,9 +72,9 @@ function Rating({
         )}
 
         {/* Empty stars */}
-        {Array.from({ length: emptyStars }).map((_, i) => (
+        {Array.from({ length: emptyStars }, (_, i) => (
           <Icon
-            key={`empty-${i}`}
+            key={`empty-${emptyStars}-${i}`}
             name="star"
             size={styles.icon}
             className="text-gray-300"

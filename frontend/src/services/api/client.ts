@@ -123,7 +123,7 @@ async function handleTokenRefresh(originalRequest: InternalAxiosRequestConfig & 
   const refreshToken = getRefreshToken();
   if (!refreshToken) {
     clearTokens();
-    window.location.href = '/login';
+    globalThis.location.href = '/login';
     isRefreshing = false;
     throw new Error('No refresh token available');
   }
@@ -138,15 +138,17 @@ async function handleTokenRefresh(originalRequest: InternalAxiosRequestConfig & 
     if (originalRequest.headers) originalRequest.headers.Authorization = `Bearer ${accessToken}`;
     return apiClient(originalRequest);
   } catch (err: unknown) {
-    const refreshError: AxiosError | Error = axios.isAxiosError(err)
-      ? err
-      : err instanceof Error
-      ? err
-      : new Error(String(err));
+    const refreshError: AxiosError | Error = axios.isAxiosError(err) ? (
+      err
+    ) : err instanceof Error ? (
+      err
+    ) : (
+      new Error(String(err))
+    );
 
     processQueue(refreshError, null);
     clearTokens();
-    window.location.href = '/login';
+    globalThis.location.href = '/login';
     throw refreshError;
   } finally {
     isRefreshing = false;
