@@ -3,6 +3,13 @@ import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosResp
 const API_BASE_URL = '/api';
 
 /**
+ * Extended request config with retry flag
+ */
+interface RequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
+
+/**
  * Create Axios instance with default configuration
  */
 export const apiClient: AxiosInstance = axios.create({
@@ -93,10 +100,10 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      return handleTokenRefresh(originalRequest);
+    if (error.response?.status === 401 && originalRequest && !(originalRequest as RequestConfig)._retry) {
+      return handleTokenRefresh(originalRequest as RequestConfig);
     }
 
     throw error;
@@ -106,7 +113,7 @@ apiClient.interceptors.response.use(
 /**
  * Handle token refresh flow. Extracted to reduce cognitive complexity in interceptor.
  */
-async function handleTokenRefresh(originalRequest: InternalAxiosRequestConfig & { _retry?: boolean }) {
+async function handleTokenRefresh(originalRequest: RequestConfig) {
   if (isRefreshing) {
     return new Promise<AxiosResponse | null>((resolve, reject) => {
       failedQueue.push({ resolve: (token: string | null) => {
