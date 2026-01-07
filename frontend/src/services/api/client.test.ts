@@ -24,7 +24,7 @@ describe('api client token helpers and interceptors', () => {
     const handler = (apiClient.interceptors.request as unknown as { handlers: Array<{ fulfilled: (config: Record<string, unknown>) => Promise<Record<string, unknown>> }> }).handlers[0].fulfilled;
     const config = { headers: {} } as Record<string, unknown>;
 
-    const out = await handler(config);
+    const out = (await handler(config)) as Record<string, Record<string, unknown>>;
 
     expect(out.headers.Authorization).toBe('Bearer tok123');
   });

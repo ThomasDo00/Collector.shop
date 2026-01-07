@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
-import Icon from './Icon';
+import Icon, { type IconName } from './Icon';
 
 describe('Icon', () => {
   it('renders known icon without crashing', () => {
@@ -9,7 +9,7 @@ describe('Icon', () => {
   });
 
   it('returns null for unknown icon name', () => {
-    const { container } = render(<Icon name={'unknown' as unknown as IconName} />);
+    const { container } = render(<Icon name={'unknown' as IconName} />);
     expect(container.firstChild).toBeNull();
   });
 });

@@ -18,6 +18,8 @@ import * as client from './api/client';
 
 describe('authService', () => {
   const mocked = vi.mocked(client as typeof import('./api/client'));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mockPost = mocked.apiClient.post as any;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -25,7 +27,7 @@ describe('authService', () => {
 
   it('login should call api and store tokens', async () => {
     const resp = { data: { data: { accessToken: 'a', refreshToken: 'r', user: { id: '1' } } } };
-    mocked.apiClient.post.mockResolvedValue(resp);
+    mockPost.mockResolvedValue(resp);
 
     const result = await authService.login({ email: 't', password: 'p' } as unknown as Parameters<typeof authService.login>[0]);
 
@@ -35,7 +37,7 @@ describe('authService', () => {
 
   it('register should call api and return data', async () => {
     const resp = { data: { data: { id: 'u1' } } };
-    mocked.apiClient.post.mockResolvedValue(resp);
+    mockPost.mockResolvedValue(resp);
 
     const r = await authService.register({ email: 'x' } as unknown as Parameters<typeof authService.register>[0]);
     expect(r).toEqual(resp.data.data);
@@ -44,7 +46,7 @@ describe('authService', () => {
 
   it('refreshToken should set new tokens and return them', async () => {
     const resp = { data: { data: { accessToken: 'na', refreshToken: 'nr' } } };
-    mocked.apiClient.post.mockResolvedValue(resp);
+    mockPost.mockResolvedValue(resp);
 
     const tokens = await authService.refreshToken('rt');
     expect(tokens).toEqual(resp.data.data);
@@ -52,7 +54,7 @@ describe('authService', () => {
   });
 
   it('logout should clear tokens even if api fails', async () => {
-    mocked.apiClient.post.mockRejectedValue(new Error('fail'));
+    mockPost.mockRejectedValue(new Error('fail'));
 
     await authService.logout();
     expect(mocked.clearTokens).toHaveBeenCalled();
