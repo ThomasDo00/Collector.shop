@@ -141,7 +141,6 @@ function SearchBar({
               'transition-all duration-200'
             )}
             aria-label="Recherche"
-            aria-expanded={showSuggestions && filteredSuggestions.length > 0}
             aria-haspopup="listbox"
             aria-controls="search-suggestions"
           />
@@ -172,6 +171,13 @@ function SearchBar({
               role="option"
               aria-selected={index === selectedIndex}
               onClick={() => handleSuggestionClick(suggestion)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleSuggestionClick(suggestion);
+                }
+              }}
+              tabIndex={0}
               className={clsx(
                 'px-4 py-3 cursor-pointer transition-colors duration-150',
                 index === selectedIndex

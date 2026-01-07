@@ -196,7 +196,7 @@ function ProfilePage() {
             {/* Filter */}
             <div className="flex items-center justify-between mb-6">
               <p className="text-gray-600">
-                {filteredListings.length} article{filteredListings.length !== 1 ? 's' : ''}
+                {filteredListings.length} article{filteredListings.length === 1 ? '' : 's'}
               </p>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -266,7 +266,7 @@ function ProfilePage() {
                 <div key={review.id} className="bg-white rounded-lg p-6 shadow-sm">
                   <div className="flex items-start gap-4">
                     <Avatar
-                      src={review.author.avatarUrl || undefined}
+                      src={review.author.avatarUrl ?? undefined}
                       alt={review.author.username}
                       size="md"
                     />

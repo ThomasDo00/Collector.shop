@@ -17,7 +17,7 @@ const CATEGORIES = [
 const FEATURED_PRODUCTS = [
   { id: '1', title: 'Nike Air Max 1 "Patta"', price: 450, imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400', seller: 'sneakerhead42', rating: 4.9 },
   { id: '2', title: 'Figurine Dragon Ball Z Goku', price: 180, imageUrl: 'https://images.unsplash.com/photo-1608889825103-eb5ed706fc64?w=400', seller: 'collector_pro', rating: 4.8 },
-  { id: '3', title: 'Vinyle Pink Floyd - The Wall', price: 75, imageUrl: 'https://images.unsplash.com/photo-1539375665275-f9de415ef9ac?w=400', seller: 'vinyl_addict', rating: 5.0 },
+  { id: '3', title: 'Vinyle Pink Floyd - The Wall', price: 75, imageUrl: 'https://images.unsplash.com/photo-1539375665275-f9de415ef9ac?w=400', seller: 'vinyl_addict', rating: 5 },
   { id: '4', title: 'Poster Star Wars Original', price: 220, imageUrl: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400', seller: 'movie_buff', rating: 4.7 },
 ];
 
@@ -59,7 +59,7 @@ function HomePage() {
                 variant="secondary"
                 size="lg"
                 rightIcon={<Icon name="arrow-right" size="sm" />}
-                onClick={() => window.location.href = '/catalog'}
+                onClick={() => { globalThis.location.href = '/catalog'; }}
               >
                 Explorer le catalogue
               </Button>
@@ -67,7 +67,7 @@ function HomePage() {
                 variant="ghost"
                 size="lg"
                 className="text-white border-white/30 hover:bg-white/10"
-                onClick={() => window.location.href = '/sell'}
+                onClick={() => { globalThis.location.href = '/sell'; }}
               >
                 Vendre un article
               </Button>
@@ -253,7 +253,7 @@ function HomePage() {
               variant="primary"
               size="lg"
               rightIcon={<Icon name="arrow-right" size="sm" />}
-              onClick={() => window.location.href = '/sell'}
+              onClick={() => { globalThis.location.href = '/sell'; }}
             >
               Commencer a vendre
             </Button>

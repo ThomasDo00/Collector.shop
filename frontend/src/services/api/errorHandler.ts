@@ -76,11 +76,11 @@ export function handleApiError(error: unknown): AppError {
     const apiError = error.response?.data as ApiErrorResponse | undefined;
 
     // If we have a structured API error response
-    if (apiError && apiError.error) {
+    if (apiError?.error) {
       const code = apiError.error;
       return {
         code,
-        message: errorMessages[code] || apiError.message || errorMessages[ErrorCodes.UNKNOWN],
+        message: errorMessages[code] ?? apiError.message ?? errorMessages[ErrorCodes.UNKNOWN],
         details: apiError.details,
       };
     }

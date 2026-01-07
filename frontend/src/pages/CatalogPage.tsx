@@ -62,10 +62,10 @@ function CatalogPage() {
 
     // Filter by category
     if (filters.categories && filters.categories.length > 0) {
-      const categoryNames = filters.categories.map(id =>
+      const categoryNames = new Set(filters.categories.map(id =>
         MOCK_CATEGORIES.find(c => c.id === id)?.name
-      ).filter(Boolean);
-      result = result.filter(p => categoryNames.includes(p.category));
+      ).filter(Boolean));
+      result = result.filter(p => p.category && categoryNames.has(p.category));
     }
 
     // Filter by price
@@ -148,7 +148,7 @@ function CatalogPage() {
 
   const searchQuery = searchParams.get('q');
 
-  const pluralSuffix = filteredProducts.length !== 1 ? 's' : '';
+  const pluralSuffix = filteredProducts.length === 1 ? '' : 's';
   const minPriceLabel = filters.minPrice ? `${filters.minPrice}€` : '0€';
   const maxPriceLabel = filters.maxPrice ? `${filters.maxPrice}€` : '∞';
 
@@ -161,11 +161,13 @@ function CatalogPage() {
 
           <div className="mt-4">
             <Typography variant="h2">
-              {searchQuery
-                ? `Resultats pour "${searchQuery}"`
-                : currentCategory
-                  ? currentCategory.name
-                  : 'Tous les articles'}
+              {searchQuery ? (
+                `Resultats pour "${searchQuery}"`
+              ) : currentCategory ? (
+                currentCategory.name
+              ) : (
+                'Tous les articles'
+              )}
             </Typography>
             <p className="text-gray-500 mt-1">
               {filteredProducts.length} article{pluralSuffix} trouve{pluralSuffix}
@@ -276,16 +278,10 @@ function CatalogPage() {
       {isMobileFilterOpen && (
         <>
           {/* Overlay */}
-          <div
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-            role="button"
-            tabIndex={0}
+          <button
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden cursor-default"
             onClick={() => setIsMobileFilterOpen(false)}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
-                setIsMobileFilterOpen(false);
-              }
-            }}
+            aria-label="Fermer les filtres"
           />
 
           {/* Drawer */}

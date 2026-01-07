@@ -118,7 +118,7 @@ function ProductDetailPage() {
                 >
                   <img
                     src={image}
-                    alt={`${product.title} - Image ${index + 1}`}
+                    alt={`${product.title} - Vue ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
                 </button>
@@ -133,8 +133,13 @@ function ProductDetailPage() {
               <Badge variant="primary">{product.category}</Badge>
               <Badge
                 variant={
-                  product.condition === 'new' ? 'success' :
-                  product.condition === 'like_new' ? 'info' : 'neutral'
+                  product.condition === 'new' ? (
+                    'success'
+                  ) : product.condition === 'like_new' ? (
+                    'info'
+                  ) : (
+                    'neutral'
+                  )
                 }
               >
                 {CONDITION_LABELS[product.condition]}

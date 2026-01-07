@@ -53,8 +53,7 @@ function Logo({
             sizeStyles[size].text
           )}
         >
-          Collector
-          <span className="text-primary-800">.shop</span>
+          Collector<span className="text-primary-800">.shop</span>
         </span>
       )}
     </div>
