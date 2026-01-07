@@ -4,7 +4,7 @@ import Input from './Input';
 
 describe('Input accessibility', () => {
   it('links label and input via id', () => {
-    render(<Input label="Email" name="email" /> as any);
+    render(<Input label="Email" name="email" />);
     const label = screen.getByText('Email');
     expect(label).toBeInTheDocument();
   });

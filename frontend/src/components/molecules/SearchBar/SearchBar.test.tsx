@@ -4,7 +4,7 @@ import SearchBar from './SearchBar';
 
 describe('SearchBar', () => {
   it('renders input element', () => {
-    render(<SearchBar onSearch={() => {}} /> as any);
+    render(<SearchBar onSearch={() => {}} />);
     expect(screen.getByRole('searchbox')).toBeInTheDocument();
   });
 });

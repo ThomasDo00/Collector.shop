@@ -3,6 +3,6 @@ import PriceDisplay from './PriceDisplay';
 
 describe('PriceDisplay', () => {
   it('formats number without throwing', () => {
-    expect(() => PriceDisplay({ price: 1234 } as any)).not.toThrow();
+    expect(() => PriceDisplay({ price: 1234 })).not.toThrow();
   });
 });

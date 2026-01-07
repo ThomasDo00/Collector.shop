@@ -4,7 +4,7 @@ import PriceDisplay from './PriceDisplay';
 
 describe('PriceDisplay currency', () => {
   it('shows currency symbol for EUR', () => {
-    render(<PriceDisplay price={10} currency="EUR" /> as any);
+    render(<PriceDisplay price={10} currency="EUR" />);
     expect(screen.getByText(/€/)).toBeTruthy();
   });
 });

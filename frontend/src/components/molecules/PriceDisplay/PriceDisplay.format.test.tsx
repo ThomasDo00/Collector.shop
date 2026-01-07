@@ -4,7 +4,7 @@ import PriceDisplay from './PriceDisplay';
 
 describe('PriceDisplay format', () => {
   it('renders formatted price', () => {
-    render(<PriceDisplay price={99.5} /> as any);
+    render(<PriceDisplay price={99.5} />);
     expect(screen.getByText(/99/)).toBeInTheDocument();
   });
 });

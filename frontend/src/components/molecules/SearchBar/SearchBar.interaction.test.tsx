@@ -4,7 +4,7 @@ import SearchBar from './SearchBar';
 
 describe('SearchBar interaction (sanity)', () => {
   it('renders input element without simulating user-event (lib may be absent)', () => {
-    render(<SearchBar onSearch={() => {}} /> as any);
+    render(<SearchBar onSearch={() => {}} />);
     expect(screen.getByRole('searchbox')).toBeInTheDocument();
   });
 });

@@ -4,7 +4,7 @@ import { render } from '@testing-library/react';
 
 describe('Icon unknown warning', () => {
   it('returns null and does not throw for unknown name', () => {
-    const { container } = render(<Icon name={'nope' as any} />);
+    const { container } = render(<Icon name={'nope' as unknown as IconName} />);
     expect(container.firstChild).toBeNull();
   });
 });

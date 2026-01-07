@@ -4,7 +4,7 @@ import Rating from './Rating';
 
 describe('Rating', () => {
   it('renders readable score (localized)', () => {
-    render(<Rating value={4.5} /> as any);
+    render(<Rating value={4.5} />);
     // component renders localized number (eg. '4,5')
     expect(screen.getByText((content) => /4[.,]5/.test(content))).toBeTruthy();
   });

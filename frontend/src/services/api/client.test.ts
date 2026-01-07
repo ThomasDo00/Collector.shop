@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import axios from 'axios';
 import apiClient, { setTokens, clearTokens, hasStoredAuth } from './client';
 
 describe('api client token helpers and interceptors', () => {
@@ -22,8 +21,8 @@ describe('api client token helpers and interceptors', () => {
     localStorage.setItem('accessToken', 'tok123');
 
     // Grab the registered request interceptor
-    const handler = (apiClient.interceptors.request as any).handlers[0].fulfilled;
-    const config = { headers: {} } as any;
+    const handler = (apiClient.interceptors.request as unknown as { handlers: Array<{ fulfilled: (config: Record<string, unknown>) => Promise<Record<string, unknown>> }> }).handlers[0].fulfilled;
+    const config = { headers: {} } as Record<string, unknown>;
 
     const out = await handler(config);
 

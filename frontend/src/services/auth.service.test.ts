@@ -17,7 +17,7 @@ vi.mock('./api/client', () => {
 import * as client from './api/client';
 
 describe('authService', () => {
-  const mocked = vi.mocked(client as any);
+  const mocked = vi.mocked(client as typeof import('./api/client'));
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -27,7 +27,7 @@ describe('authService', () => {
     const resp = { data: { data: { accessToken: 'a', refreshToken: 'r', user: { id: '1' } } } };
     mocked.apiClient.post.mockResolvedValue(resp);
 
-    const result = await authService.login({ email: 't', password: 'p' } as any);
+    const result = await authService.login({ email: 't', password: 'p' } as unknown as Parameters<typeof authService.login>[0]);
 
     expect(result).toEqual(resp.data.data);
     expect(mocked.setTokens).toHaveBeenCalledWith('a', 'r');
@@ -37,7 +37,7 @@ describe('authService', () => {
     const resp = { data: { data: { id: 'u1' } } };
     mocked.apiClient.post.mockResolvedValue(resp);
 
-    const r = await authService.register({ email: 'x' } as any);
+    const r = await authService.register({ email: 'x' } as unknown as Parameters<typeof authService.register>[0]);
     expect(r).toEqual(resp.data.data);
     expect(mocked.default.post).toHaveBeenCalled();
   });

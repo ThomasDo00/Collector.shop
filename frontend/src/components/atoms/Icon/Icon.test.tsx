@@ -9,7 +9,7 @@ describe('Icon', () => {
   });
 
   it('returns null for unknown icon name', () => {
-    const { container } = render(<Icon name={'unknown' as any} />);
+    const { container } = render(<Icon name={'unknown' as unknown as IconName} />);
     expect(container.firstChild).toBeNull();
   });
 });
