@@ -19,6 +19,7 @@ import {
   CheckCircleIcon,
   StarIcon,
   EyeIcon,
+  EyeSlashIcon,
   PencilIcon,
   TrashIcon,
   PlusIcon,
@@ -69,6 +70,7 @@ export type IconName =
   | 'star'
   | 'star-solid'
   | 'eye'
+  | 'eye-slash'
   | 'edit'
   | 'trash'
   | 'plus'
@@ -132,6 +134,7 @@ const iconMap: Record<IconName, typeof HeartIcon> = {
   star: StarIcon,
   'star-solid': StarSolidIcon,
   eye: EyeIcon,
+  'eye-slash': EyeSlashIcon,
   edit: PencilIcon,
   trash: TrashIcon,
   plus: PlusIcon,
