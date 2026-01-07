@@ -150,7 +150,7 @@ function HomePage() {
                     className="absolute top-3 right-3 p-2 bg-white/90 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={(e) => {
                       e.preventDefault();
-                      // TODO: Add to favorites
+                      console.log('Add to favorites:', product.id);
                     }}
                     aria-label="Ajouter aux favoris"
                   >
