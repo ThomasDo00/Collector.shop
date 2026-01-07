@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { AxiosError } from 'axios';
+import { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { handleApiError, isErrorCode, getFieldError, ErrorCodes } from './errorHandler';
 import type { ApiErrorResponse } from '@/types';
 
@@ -15,14 +15,14 @@ describe('errorHandler', () => {
       const axiosError = new AxiosError(
         'Request failed',
         'ERR_BAD_REQUEST',
-        {} as any,
+        {} as InternalAxiosRequestConfig,
         {},
         {
           data: apiError,
           status: 409,
           statusText: 'Conflict',
           headers: {},
-          config: {} as any,
+          config: {} as InternalAxiosRequestConfig,
         }
       );
 
@@ -46,14 +46,14 @@ describe('errorHandler', () => {
       const axiosError = new AxiosError(
         'Request failed',
         'ERR_BAD_REQUEST',
-        {} as any,
+        {} as InternalAxiosRequestConfig,
         {},
         {
           data: apiError,
           status: 400,
           statusText: 'Bad Request',
           headers: {},
-          config: {} as any,
+          config: {} as InternalAxiosRequestConfig,
         }
       );
 
@@ -90,14 +90,14 @@ describe('errorHandler', () => {
       const axiosError = new AxiosError(
         'Bad Request',
         'ERR_BAD_REQUEST',
-        {} as any,
+        {} as InternalAxiosRequestConfig,
         {},
         {
           status: 400,
           data: {},
           statusText: 'Bad Request',
           headers: {},
-          config: {} as any,
+          config: {} as InternalAxiosRequestConfig,
         }
       );
 
@@ -110,14 +110,14 @@ describe('errorHandler', () => {
       const axiosError = new AxiosError(
         'Unauthorized',
         'ERR_BAD_REQUEST',
-        {} as any,
+        {} as InternalAxiosRequestConfig,
         {},
         {
           status: 401,
           data: {},
           statusText: 'Unauthorized',
           headers: {},
-          config: {} as any,
+          config: {} as InternalAxiosRequestConfig,
         }
       );
 
@@ -130,14 +130,14 @@ describe('errorHandler', () => {
       const axiosError = new AxiosError(
         'Forbidden',
         'ERR_BAD_REQUEST',
-        {} as any,
+        {} as InternalAxiosRequestConfig,
         {},
         {
           status: 403,
           data: {},
           statusText: 'Forbidden',
           headers: {},
-          config: {} as any,
+          config: {} as InternalAxiosRequestConfig,
         }
       );
 
@@ -150,14 +150,14 @@ describe('errorHandler', () => {
       const axiosError = new AxiosError(
         'Not Found',
         'ERR_BAD_REQUEST',
-        {} as any,
+        {} as InternalAxiosRequestConfig,
         {},
         {
           status: 404,
           data: {},
           statusText: 'Not Found',
           headers: {},
-          config: {} as any,
+          config: {} as InternalAxiosRequestConfig,
         }
       );
 
@@ -170,14 +170,14 @@ describe('errorHandler', () => {
       const axiosError = new AxiosError(
         'Conflict',
         'ERR_BAD_REQUEST',
-        {} as any,
+        {} as InternalAxiosRequestConfig,
         {},
         {
           status: 409,
           data: {},
           statusText: 'Conflict',
           headers: {},
-          config: {} as any,
+          config: {} as InternalAxiosRequestConfig,
         }
       );
 
@@ -190,14 +190,14 @@ describe('errorHandler', () => {
       const axiosError = new AxiosError(
         'Too Many Requests',
         'ERR_BAD_REQUEST',
-        {} as any,
+        {} as InternalAxiosRequestConfig,
         {},
         {
           status: 429,
           data: {},
           statusText: 'Too Many Requests',
           headers: {},
-          config: {} as any,
+          config: {} as InternalAxiosRequestConfig,
         }
       );
 
@@ -210,14 +210,14 @@ describe('errorHandler', () => {
       const axiosError = new AxiosError(
         'Internal Server Error',
         'ERR_BAD_REQUEST',
-        {} as any,
+        {} as InternalAxiosRequestConfig,
         {},
         {
           status: 500,
           data: {},
           statusText: 'Internal Server Error',
           headers: {},
-          config: {} as any,
+          config: {} as InternalAxiosRequestConfig,
         }
       );
 

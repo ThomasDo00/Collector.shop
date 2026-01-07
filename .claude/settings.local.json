@@ -23,7 +23,8 @@
       "Bash(npm run test:coverage:*)",
       "Bash(export NVM_DIR=\"$HOME/.nvm\")",
       "Bash([ -s \"$NVM_DIR/nvm.sh\" ])",
-      "Bash(. \"$NVM_DIR/nvm.sh\")"
+      "Bash(. \"$NVM_DIR/nvm.sh\")",
+      "Bash(npm run lint:*)"
     ],
     "deny": [],
     "ask": []
