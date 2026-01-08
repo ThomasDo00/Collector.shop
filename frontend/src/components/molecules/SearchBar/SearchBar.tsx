@@ -162,16 +162,12 @@ function SearchBar({
       {showSuggestions && filteredSuggestions.length > 0 && (
         <ul
           id="search-suggestions"
-          role="listbox"
-          tabIndex={-1}
           className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
         >
           {filteredSuggestions.slice(0, 5).map((suggestion, index) => (
             <li
               key={suggestion}
-              role="option"
               aria-selected={index === selectedIndex}
-              tabIndex={0}
               onClick={() => handleSuggestionClick(suggestion)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {

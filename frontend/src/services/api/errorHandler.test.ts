@@ -298,7 +298,7 @@ describe('errorHandler', () => {
     });
 
     it('handles Error without message', () => {
-      const errorWithoutMessage = new Error();
+      const errorWithoutMessage = new Error('Unknown error');
       errorWithoutMessage.message = '';
       const result = handleApiError(errorWithoutMessage);
 
