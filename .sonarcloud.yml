@@ -24,7 +24,7 @@ sonar:
     - '**/tests/**'
     - '**/__tests__/**'
   
-  # Code coverage - exclude test files and build artifacts
+  # Code coverage - exclude ONLY unit test files
   coverage.exclusions:
     - '**/*.test.ts'
     - '**/*.test.tsx'
@@ -32,9 +32,6 @@ sonar:
     - '**/*.spec.tsx'
     - '**/tests/**'
     - '**/__tests__/**'
-    - '**/node_modules/**'
-    - '**/dist/**'
-    - '**/coverage/**'
   
   # File type associations - Clear separation to avoid conflicts
   javascript.file.suffixes: .js,.jsx
