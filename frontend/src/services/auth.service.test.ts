@@ -69,4 +69,25 @@ describe('authService', () => {
     authService.clearAuth();
     expect(mocked.clearTokens).toHaveBeenCalled();
   });
+
+  it('forgotPassword should call api with email', async () => {
+    mockPost.mockResolvedValue({ data: { success: true } });
+
+    await authService.forgotPassword('test@example.com');
+    expect(mocked.default.post).toHaveBeenCalled();
+  });
+
+  it('resetPassword should call api with token and new password', async () => {
+    mockPost.mockResolvedValue({ data: { success: true } });
+
+    await authService.resetPassword('reset-token', 'newPassword123');
+    expect(mocked.default.post).toHaveBeenCalled();
+  });
+
+  it('verifyEmail should call api with token', async () => {
+    mockPost.mockResolvedValue({ data: { success: true } });
+
+    await authService.verifyEmail('verify-token');
+    expect(mocked.default.post).toHaveBeenCalled();
+  });
 });

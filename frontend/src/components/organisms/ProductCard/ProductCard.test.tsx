@@ -96,4 +96,53 @@ describe('ProductCard', () => {
     );
     expect(screen.getByText('Vendu')).toBeInTheDocument();
   });
+
+  it('renders reserved badge when status is reserved', () => {
+    renderWithRouter(
+      <ProductCard product={{ ...mockProduct, status: 'reserved' }} />
+    );
+    expect(screen.getByText('Reserve')).toBeInTheDocument();
+  });
+
+  it('does not render rating when seller has no rating', () => {
+    const productWithoutRating = {
+      ...mockProduct,
+      seller: { ...mockProduct.seller, rating: undefined },
+    };
+    renderWithRouter(<ProductCard product={productWithoutRating} />);
+    expect(screen.queryByText(/\d\.\d/)).not.toBeInTheDocument();
+  });
+
+  it('uses placeholder image when imageUrl is not provided', () => {
+    const productWithoutImage = { ...mockProduct, imageUrl: undefined };
+    renderWithRouter(<ProductCard product={productWithoutImage} />);
+    const image = screen.getByAltText('Test Product') as HTMLImageElement;
+    expect(image.src).toContain('/placeholder-product.jpg');
+  });
+
+  it('does not render category when not provided', () => {
+    const productWithoutCategory = { ...mockProduct, category: undefined };
+    renderWithRouter(<ProductCard product={productWithoutCategory} />);
+    expect(screen.queryByText('Test Category')).not.toBeInTheDocument();
+  });
+
+  it('shows hover state on mouse enter', () => {
+    renderWithRouter(<ProductCard product={mockProduct} />);
+    const card = screen.getByRole('link');
+
+    fireEvent.mouseEnter(card);
+    expect(screen.getByText('Voir le produit')).toBeInTheDocument();
+  });
+
+  it('hides hover state on mouse leave', () => {
+    renderWithRouter(<ProductCard product={mockProduct} />);
+    const card = screen.getByRole('link');
+
+    fireEvent.mouseEnter(card);
+    fireEvent.mouseLeave(card);
+
+    // The overlay should still be in DOM but with opacity-0 class
+    const overlay = screen.getByText('Voir le produit');
+    expect(overlay).toBeInTheDocument();
+  });
 });

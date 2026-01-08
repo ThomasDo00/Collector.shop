@@ -14,4 +14,15 @@ describe('HomePage', () => {
     expect(screen.getByText(/Trouvez votre prochain tresor/)).toBeInTheDocument();
     expect(screen.getAllByRole('link').length).toBeGreaterThan(0);
   });
+
+  it('renders favorite buttons for products', () => {
+    render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>
+    );
+
+    const favoriteButtons = screen.getAllByLabelText(/Ajouter aux favoris/i);
+    expect(favoriteButtons.length).toBeGreaterThan(0);
+  });
 });

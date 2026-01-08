@@ -198,4 +198,36 @@ describe('SearchBar - Coverage Tests', () => {
       expect(screen.queryByText('Item 6')).not.toBeInTheDocument();
     });
   });
+
+  it('selects suggestion with Space key', async () => {
+    const onSearch = vi.fn();
+    const suggestions = ['Apple', 'Banana'];
+    render(<SearchBar onSearch={onSearch} suggestions={suggestions} />);
+
+    const input = screen.getByRole('searchbox');
+    fireEvent.change(input, { target: { value: 'a' } });
+
+    await waitFor(() => {
+      const suggestionElement = screen.getByText('Apple');
+      fireEvent.keyDown(suggestionElement, { key: ' ' });
+    });
+
+    expect(onSearch).toHaveBeenCalledWith('Apple');
+  });
+
+  it('selects suggestion with Enter key on the suggestion element', async () => {
+    const onSearch = vi.fn();
+    const suggestions = ['Apple', 'Banana'];
+    render(<SearchBar onSearch={onSearch} suggestions={suggestions} />);
+
+    const input = screen.getByRole('searchbox');
+    fireEvent.change(input, { target: { value: 'a' } });
+
+    await waitFor(() => {
+      const suggestionElement = screen.getByText('Apple');
+      fireEvent.keyDown(suggestionElement, { key: 'Enter' });
+    });
+
+    expect(onSearch).toHaveBeenCalledWith('Apple');
+  });
 });

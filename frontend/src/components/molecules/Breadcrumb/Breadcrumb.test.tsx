@@ -58,4 +58,22 @@ describe('Breadcrumb', () => {
     expect(firstLink).toHaveAttribute('href', '/first');
     expect(secondLink).toHaveAttribute('href', '/second');
   });
+
+  it('renders middle item without link when it has no href', () => {
+    const items = [
+      { label: 'First', href: '/first' },
+      { label: 'Middle' }, // No href, not last
+      { label: 'Last' },
+    ];
+    render(
+      <MemoryRouter>
+        <Breadcrumb items={items} />
+      </MemoryRouter>
+    );
+
+    const middleItem = screen.getByText('Middle');
+    expect(middleItem.tagName).toBe('SPAN');
+    expect(middleItem).toHaveClass('text-gray-500');
+    expect(middleItem).not.toHaveAttribute('aria-current');
+  });
 });
