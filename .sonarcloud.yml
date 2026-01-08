@@ -29,8 +29,9 @@ sonar:
     - '**/tests/**'
     - '**/__tests__/**'
   
-  # File type associations
-  javascript.file.suffixes: .js,.jsx,.ts,.tsx
+  # File type associations - Clear separation to avoid conflicts
+  javascript.file.suffixes: .js,.jsx
+  typescript.file.suffixes: .ts,.tsx
   
   # Quality gates and analysis settings
   qualitygate.wait: true
