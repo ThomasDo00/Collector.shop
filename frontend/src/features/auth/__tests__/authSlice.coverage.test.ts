@@ -15,7 +15,6 @@ import authReducer, {
   selectAuthInitialized,
   selectUserRole,
 } from '../authSlice';
-import { authService } from '@/services/auth.service';
 import type { RootState } from '@/store';
 
 // Mock authService
@@ -77,8 +76,6 @@ describe('authSlice - Coverage Tests', () => {
 
   describe('Reducers', () => {
     it('clearError clears the error', () => {
-      const store = createTestStore();
-
       // Set an error first
       const stateWithError = authReducer(
         { user: null, isAuthenticated: false, isLoading: false, isInitialized: false, error: { code: 'TEST_ERROR', message: 'Test' } },
