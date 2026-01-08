@@ -1,0 +1,74 @@
+sonar:
+  projectKey: collector-shop
+  projectName: Collector Shop
+  organization: cesimaalsip5
+  
+  # Sources à analyser
+  sources:
+    - frontend/src
+    - backend/src
+  
+  # Coverage files
+  javascript.lcov.reportPaths: frontend/coverage/lcov.info
+  
+  # Exclusions - Fichiers de test, config, et dépendances
+  # Les fichiers de test ne doivent PAS être comptés dans la couverture
+  exclusions:
+    # Test files - Critical: These should never count toward coverage
+    - '**/*.test.ts'
+    - '**/*.test.tsx'
+    - '**/*.spec.ts'
+    - '**/*.spec.tsx'
+    - '**/tests/**'
+    - '**/__tests__/**'
+    
+    # Configuration files (not source code)
+    - '.eslintrc.cjs'
+    - '.eslintrc.js'
+    - '*.config.js'
+    - '*.config.ts'
+    - 'tailwind.config.js'
+    - 'postcss.config.js'
+    - 'vite.config.ts'
+    - 'vitest.config.ts'
+    - 'tsconfig.json'
+    - 'jest.config.js'
+    - 'webpack.config.js'
+    
+    # Node modules and build outputs
+    - '**/node_modules/**'
+    - '**/node_modules'
+    - '**/dist/**'
+    - '**/build/**'
+    - '**/.next/**'
+    - '**/coverage/**'
+    - '**/vendor/**'
+  
+  # Test files (for test reports, but excluded from coverage)
+  test.inclusions:
+    - '**/*.test.ts'
+    - '**/*.test.tsx'
+    - '**/*.spec.ts'
+    - '**/*.spec.tsx'
+    - '**/tests/**'
+    - '**/__tests__/**'
+  
+  # Code coverage
+  coverage.exclusions:
+    - '**/*.test.ts'
+    - '**/*.test.tsx'
+    - '**/*.spec.ts'
+    - '**/*.spec.tsx'
+    - '**/tests/**'
+    - '**/__tests__/**'
+    - '**/*.config.ts'
+    - '**/*.config.js'
+    - 'src/main.tsx'
+    - 'src/vite-env.d.ts'
+  
+  # File type associations
+  javascript.file.suffixes: .js,.jsx,.ts,.tsx
+  
+  # Quality gates and analysis settings
+  qualitygate.wait: true
+  verbose: false
