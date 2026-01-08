@@ -32,7 +32,7 @@ describe('CheckoutLayout', () => {
   it('displays current year in copyright', () => {
     renderCheckoutLayout();
     const currentYear = new Date().getFullYear();
-    expect(screen.getByText(new RegExp(`© ${currentYear} Collector\\.shop`))).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(String.raw`© ${currentYear} Collector\.shop`))).toBeInTheDocument();
   });
 
   it('renders footer links', () => {
