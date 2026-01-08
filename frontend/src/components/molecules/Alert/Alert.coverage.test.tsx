@@ -65,4 +65,28 @@ describe('Alert - Coverage Tests', () => {
     const alert = container.firstChild;
     expect(alert).toHaveAttribute('role', 'alert');
   });
+
+  it('renders action button and calls onClick when clicked', () => {
+    const handleAction = vi.fn();
+    render(
+      <Alert
+        variant="warning"
+        message="Alert with action"
+        action={{ label: 'Take Action', onClick: handleAction }}
+      />
+    );
+
+    const actionButton = screen.getByRole('button', { name: /Take Action/i });
+    expect(actionButton).toBeInTheDocument();
+
+    fireEvent.click(actionButton);
+    expect(handleAction).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not render action button when action is undefined', () => {
+    render(<Alert variant="warning" message="Alert without action" />);
+    // Should only query buttons - no action button should exist
+    const buttons = screen.queryAllByRole('button');
+    expect(buttons.length).toBe(0);
+  });
 });

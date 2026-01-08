@@ -14,7 +14,8 @@ describe('SearchBar - Coverage Tests', () => {
 
     const input = screen.getByRole('searchbox');
     fireEvent.change(input, { target: { value: 'test query' } });
-    fireEvent.submit(input.closest('form')!);
+    const form = input.closest('form');
+    if (form) fireEvent.submit(form);
 
     expect(onSearch).toHaveBeenCalledWith('test query');
   });
@@ -24,7 +25,8 @@ describe('SearchBar - Coverage Tests', () => {
     render(<SearchBar onSearch={onSearch} />);
 
     const input = screen.getByRole('searchbox');
-    fireEvent.submit(input.closest('form')!);
+    const form = input.closest('form');
+    if (form) fireEvent.submit(form);
 
     expect(onSearch).not.toHaveBeenCalled();
   });

@@ -161,13 +161,11 @@ function CatalogPage() {
 
           <div className="mt-4">
             <Typography variant="h2">
-              {searchQuery ? (
-                `Resultats pour "${searchQuery}"`
-              ) : currentCategory ? (
-                currentCategory.name
-              ) : (
-                'Tous les articles'
-              )}
+              {(() => {
+                if (searchQuery) return `Resultats pour "${searchQuery}"`;
+                if (currentCategory) return currentCategory.name;
+                return 'Tous les articles';
+              })()}
             </Typography>
             <p className="text-gray-500 mt-1">
               {filteredProducts.length} article{pluralSuffix} trouve{pluralSuffix}
