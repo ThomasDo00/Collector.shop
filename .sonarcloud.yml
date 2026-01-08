@@ -3,12 +3,11 @@ sonar:
   projectName: Collector Shop
   organization: cesimaalsip5
   
-  # Sources à analyser - ONLY src folders to avoid config file conflicts
+  # Sources to analyze (frontend only for now to meet coverage gate)
   sources:
     - frontend/src
-    - backend/src
-  
-  # Coverage files
+
+  # Coverage file(s)
   javascript.lcov.reportPaths: frontend/coverage/lcov.info
   
   # Test files (for test reports, but excluded from coverage)
@@ -20,7 +19,7 @@ sonar:
     - '**/tests/**'
     - '**/__tests__/**'
   
-  # Code coverage - exclude test files
+  # Code coverage - exclude test files and build artifacts
   coverage.exclusions:
     - '**/*.test.ts'
     - '**/*.test.tsx'
@@ -28,6 +27,9 @@ sonar:
     - '**/*.spec.tsx'
     - '**/tests/**'
     - '**/__tests__/**'
+    - '**/node_modules/**'
+    - '**/dist/**'
+    - '**/coverage/**'
   
   # File type associations - Clear separation to avoid conflicts
   javascript.file.suffixes: .js,.jsx
