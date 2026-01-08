@@ -3,12 +3,17 @@ sonar:
   projectName: Collector Shop
   organization: cesimaalsip5
   
-  # Sources to analyze (frontend only for now to meet coverage gate)
+  # Sources to analyze
   sources:
     - frontend/src
+    - backend/src
 
   # Coverage file(s)
-  javascript.lcov.reportPaths: frontend/coverage/lcov.info
+  javascript.lcov.reportPaths: frontend/coverage/lcov.info,backend/coverage/lcov.info
+
+  # Tests directories (helps Sonar categorize tests)
+  tests:
+    - backend/tests
   
   # Test files (for test reports, but excluded from coverage)
   test.inclusions:
