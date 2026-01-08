@@ -91,7 +91,7 @@ describe('authSlice - Coverage Tests', () => {
         id: '1',
         email: 'test@example.com',
         username: 'testuser',
-        role: 'user' as const,
+        role: 'buyer' as const,
       };
 
       const stateWithUser = {
@@ -315,7 +315,7 @@ describe('authSlice - Coverage Tests', () => {
         id: '1',
         email: 'test@example.com',
         username: 'testuser',
-        role: 'user' as const,
+        role: 'buyer' as const,
       };
 
       const state = {

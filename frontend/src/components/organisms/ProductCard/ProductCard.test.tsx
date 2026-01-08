@@ -114,7 +114,7 @@ describe('ProductCard', () => {
   });
 
   it('uses placeholder image when imageUrl is not provided', () => {
-    const productWithoutImage = { ...mockProduct, imageUrl: undefined };
+    const productWithoutImage = { ...mockProduct, imageUrl: '/placeholder-product.jpg' };
     renderWithRouter(<ProductCard product={productWithoutImage} />);
     const image = screen.getByAltText('Test Product') as HTMLImageElement;
     expect(image.src).toContain('/placeholder-product.jpg');
