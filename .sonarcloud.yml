@@ -1,0 +1,39 @@
+sonar:
+  projectKey: collector-shop
+  projectName: Collector Shop
+  organization: cesimaalsip5
+  
+  # Sources à analyser - ONLY src folders to avoid config file conflicts
+  sources:
+    - frontend/src
+    - backend/src
+  
+  # Coverage files
+  javascript.lcov.reportPaths: frontend/coverage/lcov.info
+  
+  # Test files (for test reports, but excluded from coverage)
+  test.inclusions:
+    - '**/*.test.ts'
+    - '**/*.test.tsx'
+    - '**/*.spec.ts'
+    - '**/*.spec.tsx'
+    - '**/tests/**'
+    - '**/__tests__/**'
+  
+  # Code coverage - exclude test files
+  coverage.exclusions:
+    - '**/*.test.ts'
+    - '**/*.test.tsx'
+    - '**/*.spec.ts'
+    - '**/*.spec.tsx'
+    - '**/tests/**'
+    - '**/__tests__/**'
+  
+  # File type associations - Clear separation to avoid conflicts
+  javascript.file.suffixes: .js,.jsx
+  typescript.file.suffixes: .ts,.tsx
+  
+  # Quality gates and analysis settings
+  qualitygate.wait: true
+  verbose: false
+  verbose: false

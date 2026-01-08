@@ -24,7 +24,9 @@
     "db:seed": "npm run seed -w backend",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "docker:logs": "docker-compose logs -f"
+    "docker:logs": "docker-compose logs -f",
+    "sonar": "sonar-scanner",
+    "test:coverage": "npm run test:coverage -w frontend && npm run test:coverage -w backend"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

@@ -1,0 +1,55 @@
+# SonarQube Exclusions Configuration
+# These files and patterns are excluded from SonarQube analysis
+
+# Test files - should NOT be included in coverage metrics
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/tests/**
+**/__tests__/**
+
+# Node modules and dependencies
+**/node_modules/**
+**/vendor/**
+
+# Build outputs
+**/dist/**
+**/build/**
+**/coverage/**
+**/.next/**
+
+# Configuration files (not source code)
+*.config.js
+*.config.ts
+.eslintrc.cjs
+.eslintrc.js
+.prettierrc
+webpack.config.js
+vite.config.js
+vite.config.ts
+vitest.config.js
+vitest.config.ts
+tsconfig.json
+jest.config.js
+babel.config.js
+tailwind.config.js
+postcss.config.js
+
+# Environment and IDE files
+.env
+.env.local
+.env.*.local
+.DS_Store
+.vscode
+.idea
+*.swp
+*.swo
+
+# Generated files
+generated/
+.generated/**
+
+# Third-party code
+**/vendor/**
+**/third-party/**
