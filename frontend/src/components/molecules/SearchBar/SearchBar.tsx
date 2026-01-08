@@ -163,6 +163,7 @@ function SearchBar({
         <ul
           id="search-suggestions"
           role="listbox"
+          tabIndex={-1}
           className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
         >
           {filteredSuggestions.slice(0, 5).map((suggestion, index) => (
@@ -170,6 +171,7 @@ function SearchBar({
               key={suggestion}
               role="option"
               aria-selected={index === selectedIndex}
+              tabIndex={0}
               onClick={() => handleSuggestionClick(suggestion)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -177,7 +179,6 @@ function SearchBar({
                   handleSuggestionClick(suggestion);
                 }
               }}
-              tabIndex={0}
               className={clsx(
                 'px-4 py-3 cursor-pointer transition-colors duration-150',
                 index === selectedIndex

@@ -287,4 +287,31 @@ describe('errorHandler', () => {
       expect(getFieldError(error, 'email')).toBeUndefined();
     });
   });
+
+  describe('handleApiError - Additional Coverage', () => {
+    it('handles generic Error instance', () => {
+      const genericError = new Error('Generic error message');
+      const result = handleApiError(genericError);
+
+      expect(result.code).toBe(ErrorCodes.UNKNOWN);
+      expect(result.message).toBe('Generic error message');
+    });
+
+    it('handles Error without message', () => {
+      const errorWithoutMessage = new Error();
+      errorWithoutMessage.message = '';
+      const result = handleApiError(errorWithoutMessage);
+
+      expect(result.code).toBe(ErrorCodes.UNKNOWN);
+      expect(result.message).toBeTruthy();
+    });
+
+    it('handles unknown error type', () => {
+      const unknownError = { something: 'unexpected' };
+      const result = handleApiError(unknownError);
+
+      expect(result.code).toBe(ErrorCodes.UNKNOWN);
+      expect(result.message).toBeTruthy();
+    });
+  });
 });

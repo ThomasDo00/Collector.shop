@@ -145,13 +145,11 @@ async function handleTokenRefresh(originalRequest: RequestConfig) {
     if (originalRequest.headers) originalRequest.headers.Authorization = `Bearer ${accessToken}`;
     return apiClient(originalRequest);
   } catch (err: unknown) {
-    const refreshError: AxiosError | Error = axios.isAxiosError(err) ? (
-      err
-    ) : err instanceof Error ? (
-      err
-    ) : (
-      new Error(String(err))
-    );
+    const refreshError: AxiosError | Error = (() => {
+      if (axios.isAxiosError(err)) return err;
+      if (err instanceof Error) return err;
+      return new Error(String(err));
+    })();
 
     processQueue(refreshError, null);
     clearTokens();

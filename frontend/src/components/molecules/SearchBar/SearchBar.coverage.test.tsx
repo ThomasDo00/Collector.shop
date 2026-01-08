@@ -14,7 +14,8 @@ describe('SearchBar - Coverage Tests', () => {
 
     const input = screen.getByRole('searchbox');
     fireEvent.change(input, { target: { value: 'test query' } });
-    fireEvent.submit(input.closest('form')!);
+    const form = input.closest('form');
+    if (form) fireEvent.submit(form);
 
     expect(onSearch).toHaveBeenCalledWith('test query');
   });
@@ -24,7 +25,8 @@ describe('SearchBar - Coverage Tests', () => {
     render(<SearchBar onSearch={onSearch} />);
 
     const input = screen.getByRole('searchbox');
-    fireEvent.submit(input.closest('form')!);
+    const form = input.closest('form');
+    if (form) fireEvent.submit(form);
 
     expect(onSearch).not.toHaveBeenCalled();
   });
@@ -195,5 +197,37 @@ describe('SearchBar - Coverage Tests', () => {
       expect(screen.getByText('Item 5')).toBeInTheDocument();
       expect(screen.queryByText('Item 6')).not.toBeInTheDocument();
     });
+  });
+
+  it('selects suggestion with Space key', async () => {
+    const onSearch = vi.fn();
+    const suggestions = ['Apple', 'Banana'];
+    render(<SearchBar onSearch={onSearch} suggestions={suggestions} />);
+
+    const input = screen.getByRole('searchbox');
+    fireEvent.change(input, { target: { value: 'a' } });
+
+    await waitFor(() => {
+      const suggestionElement = screen.getByText('Apple');
+      fireEvent.keyDown(suggestionElement, { key: ' ' });
+    });
+
+    expect(onSearch).toHaveBeenCalledWith('Apple');
+  });
+
+  it('selects suggestion with Enter key on the suggestion element', async () => {
+    const onSearch = vi.fn();
+    const suggestions = ['Apple', 'Banana'];
+    render(<SearchBar onSearch={onSearch} suggestions={suggestions} />);
+
+    const input = screen.getByRole('searchbox');
+    fireEvent.change(input, { target: { value: 'a' } });
+
+    await waitFor(() => {
+      const suggestionElement = screen.getByText('Apple');
+      fireEvent.keyDown(suggestionElement, { key: 'Enter' });
+    });
+
+    expect(onSearch).toHaveBeenCalledWith('Apple');
   });
 });

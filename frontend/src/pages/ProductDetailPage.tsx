@@ -132,15 +132,11 @@ function ProductDetailPage() {
             <div className="flex items-center gap-3 mb-4">
               <Badge variant="primary">{product.category}</Badge>
               <Badge
-                variant={
-                  product.condition === 'new' ? (
-                    'success'
-                  ) : product.condition === 'like_new' ? (
-                    'info'
-                  ) : (
-                    'neutral'
-                  )
-                }
+                variant={(() => {
+                  if (product.condition === 'new') return 'success';
+                  if (product.condition === 'like_new') return 'info';
+                  return 'neutral';
+                })()}
               >
                 {CONDITION_LABELS[product.condition]}
               </Badge>
