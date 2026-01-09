@@ -167,6 +167,7 @@ function SearchBar({
           {filteredSuggestions.slice(0, 5).map((suggestion, index) => (
             <li
               key={suggestion}
+              role="option"
               aria-selected={index === selectedIndex}
               onClick={() => handleSuggestionClick(suggestion)}
               onKeyDown={(e) => {
@@ -175,6 +176,7 @@ function SearchBar({
                   handleSuggestionClick(suggestion);
                 }
               }}
+              tabIndex={0}
               className={clsx(
                 'px-4 py-3 cursor-pointer transition-colors duration-150',
                 index === selectedIndex

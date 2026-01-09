@@ -41,12 +41,12 @@ export type User = z.infer<typeof userSchema>;
 // DTO for creating a user
 export const createUserDTOSchema = z.object({
   email: z.string().email(),
-  username: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
+  username: z.string().min(3).max(30).regex(/^\w+$/, 'Username can only contain letters, numbers, and underscores'),
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/\d/, 'Password must contain at least one number')
     .regex(/[^a-zA-Z0-9]/, 'Password must contain at least one special character'),
   firstName: z.string().optional(),
   lastName: z.string().optional(),

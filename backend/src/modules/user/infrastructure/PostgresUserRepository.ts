@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import { User, UserRole, UserStatus, CreateUserDTO } from '../domain/entities/User.js';
 import { IUserRepository } from '../domain/ports/IUserRepository.js';
 
