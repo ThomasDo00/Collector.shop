@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { LoginUser } from '@modules/user/domain/usecases/LoginUser.js';
+import { LoginUser } from '@modules/user/domain/usecases/LoginUser';
 
 vi.mock('bcrypt', () => ({
   default: {
@@ -7,8 +7,8 @@ vi.mock('bcrypt', () => ({
     hash: async () => 'hashed',
   },
 }));
-import { UserRole, UserStatus } from '@modules/user/domain/entities/User.js';
-import type { IUserRepository } from '@modules/user/domain/ports/IUserRepository.js';
+import { UserRole, UserStatus } from '@modules/user/domain/entities/User';
+import type { IUserRepository } from '@modules/user/domain/ports/IUserRepository';
 
 describe('LoginUserUseCase Integration', () => {
   let loginUseCase: LoginUser;

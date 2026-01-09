@@ -148,7 +148,7 @@ describe('authSlice - Coverage Tests', () => {
         id: '1',
         email: 'test@example.com',
         username: 'testuser',
-        role: 'user' as const,
+        role: 'buyer' as const,
       };
 
       store.dispatch({ type: login.fulfilled.type, payload: user });
@@ -232,7 +232,7 @@ describe('authSlice - Coverage Tests', () => {
       const store = createTestStore();
 
       // Set initial authenticated state
-      const user = { id: '1', email: 'test@example.com', username: 'testuser', role: 'user' as const };
+      const user = { id: '1', email: 'test@example.com', username: 'testuser', role: 'buyer' as const };
       localStorageMock.setItem('user', JSON.stringify(user));
 
       store.dispatch({ type: logout.fulfilled.type });
@@ -274,7 +274,7 @@ describe('authSlice - Coverage Tests', () => {
         id: '1',
         email: 'test@example.com',
         username: 'testuser',
-        role: 'user' as const,
+        role: 'buyer' as const,
       };
 
       store.dispatch({ type: initializeAuth.fulfilled.type, payload: user });

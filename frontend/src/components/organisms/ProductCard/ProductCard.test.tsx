@@ -113,9 +113,9 @@ describe('ProductCard', () => {
     expect(screen.queryByText(/\d\.\d/)).not.toBeInTheDocument();
   });
 
-  it('uses placeholder image when imageUrl is not provided', () => {
-    const productWithoutImage = { ...mockProduct, imageUrl: '/placeholder-product.jpg' };
-    renderWithRouter(<ProductCard product={productWithoutImage} />);
+  it('renders with different imageUrl', () => {
+    const productWithDifferentImage = { ...mockProduct, imageUrl: '/placeholder-product.jpg' };
+    renderWithRouter(<ProductCard product={productWithDifferentImage} />);
     const image = screen.getByAltText('Test Product') as HTMLImageElement;
     expect(image.src).toContain('/placeholder-product.jpg');
   });

@@ -32,6 +32,13 @@ pnpm-debug.log*
 coverage/
 .nyc_output/
 
+# Generated test artifacts (TypeScript compiled output in test directories)
+**/tests/**/*.js
+**/tests/**/*.d.ts
+**/tests/**/*.d.ts.map
+**/tests/**/*.js.map
+**/tests/**/cache/
+
 # Docker
 docker-data/
 

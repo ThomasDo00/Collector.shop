@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { PostgresUserRepository } from '@modules/user/infrastructure/PostgresUserRepository.js';
+import { PostgresUserRepository } from '@modules/user/infrastructure/PostgresUserRepository';
 
 describe('PostgresUserRepository behavior', () => {
   let mockDb: any;

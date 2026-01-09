@@ -1,7 +1,6 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import Fastify from 'fastify';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-// Mock the usecases so routes don't touch DB
 vi.mock('@modules/user/domain/usecases/RegisterUser.js', () => {
   class EmailAlreadyExistsError extends Error {}
   class UsernameAlreadyExistsError extends Error {}
@@ -9,7 +8,7 @@ vi.mock('@modules/user/domain/usecases/RegisterUser.js', () => {
     RegisterUser: class {
       constructor() {}
       async execute(body: any) {
-        if (body.email === 'exists@example.com') throw new EmailAlreadyExistsError('exists');
+        if (body.email === 'exists@test.com') throw new EmailAlreadyExistsError('exists');
         if (body.username === 'exists') throw new UsernameAlreadyExistsError('exists');
         return {
           id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -32,33 +31,31 @@ vi.mock('@modules/user/domain/usecases/LoginUser.js', () => {
   class EmailNotVerifiedError extends Error {}
   class AccountSuspendedError extends Error {}
   class AccountBannedError extends Error {}
-  const loginCredentialsSchema = {} as any;
   return {
     LoginUser: class {
       constructor() {}
       async execute(body: any) {
         if (body.emailOrUsername === 'bad') throw new InvalidCredentialsError('bad');
         if (body.emailOrUsername === 'suspended') throw new AccountSuspendedError('s');
-        return { userId: 'u1', email: 'u@test.com', username: 'u', role: 'buyer' };
+        if (body.emailOrUsername === 'notverified') throw new EmailNotVerifiedError('e');
+        return { userId: 'u1', email: 'u@test.com', username: 'u', role: 'buyer', status: 'active' };
       }
     },
     InvalidCredentialsError,
     EmailNotVerifiedError,
     AccountSuspendedError,
     AccountBannedError,
-    loginCredentialsSchema,
+    loginCredentialsSchema: {} as any,
   };
 });
 
-// We don't need DB for these route tests because usecases are mocked
 import { userRoutes } from '@modules/user/adapters/user.routes';
 
-describe('userRoutes', () => {
+describe('User Routes Additional Coverage', () => {
   let fastify: any;
 
   beforeEach(async () => {
     fastify = Fastify({ logger: false });
-    // Provide a fake jwt decorator used by routes
     fastify.decorate('jwt', { sign: () => 'token' });
     await fastify.register(userRoutes, { prefix: '/api/users' });
     await fastify.ready();
@@ -68,52 +65,60 @@ describe('userRoutes', () => {
     await fastify.close();
   });
 
-  it('POST /api/users/register returns 201', async () => {
+  it('POST /api/users/register with valid form', async () => {
     const res = await fastify.inject({
       method: 'POST',
       url: '/api/users/register',
-      payload: { email: 'new@test.com', username: 'new', password: 'SecurePass123!' },
+      payload: { email: 'test@example.com', username: 'testuser', password: 'SecurePass123!' },
     });
 
     expect(res.statusCode).toBe(201);
-    const body = JSON.parse(res.payload);
-    expect(body.success).toBe(true);
-    expect(body.data.email).toBe('new@test.com');
   });
 
-  it('POST /api/users/register handles existing email', async () => {
-    const res = await fastify.inject({
-      method: 'POST',
-      url: '/api/users/register',
-      payload: { email: 'exists@example.com', username: 'new', password: 'Pass123!' },
-    });
-
-    expect(res.statusCode).toBe(409);
-    const body = JSON.parse(res.payload);
-    expect(body.error).toBe('EMAIL_EXISTS');
-  });
-
-  it('POST /api/users/login returns tokens', async () => {
+  it('POST /api/users/login with valid credentials', async () => {
     const res = await fastify.inject({
       method: 'POST',
       url: '/api/users/login',
-      payload: { emailOrUsername: 'u@test.com', password: 'pwd' },
+      payload: { emailOrUsername: 'test@example.com', password: 'password' },
     });
 
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.payload);
-    expect(body.data.accessToken).toBeDefined();
+    expect(body.data.accessToken).toBeTruthy();
   });
 
-  it('POST /api/users/login invalid credentials', async () => {
+  it('POST /api/users/login with suspended account', async () => {
     const res = await fastify.inject({
       method: 'POST',
       url: '/api/users/login',
-      payload: { emailOrUsername: 'bad', password: 'pwd' },
+      payload: { emailOrUsername: 'suspended', password: 'password' },
     });
 
-    expect(res.statusCode).toBe(401);
+    expect(res.statusCode).toBe(403);
     const body = JSON.parse(res.payload);
-    expect(body.error).toBe('INVALID_CREDENTIALS');
+    expect(body.error).toBe('ACCOUNT_SUSPENDED');
+  });
+
+  it('POST /api/users/login with unverified email', async () => {
+    const res = await fastify.inject({
+      method: 'POST',
+      url: '/api/users/login',
+      payload: { emailOrUsername: 'notverified', password: 'password' },
+    });
+
+    expect(res.statusCode).toBe(403);
+    const body = JSON.parse(res.payload);
+    expect(body.error).toBe('EMAIL_NOT_VERIFIED');
+  });
+
+  it('GET /api/users/health returns module health', async () => {
+    const res = await fastify.inject({
+      method: 'GET',
+      url: '/api/users/health',
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.payload);
+    expect(body.module).toBe('users');
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { PostgresUserRepository } from '@modules/user/infrastructure/PostgresUserRepository.js';
+import { PostgresUserRepository } from '@modules/user/infrastructure/PostgresUserRepository';
 import type { Knex } from 'knex';
 
 describe('PostgresUserRepository', () => {

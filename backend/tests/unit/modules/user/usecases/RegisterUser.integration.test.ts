@@ -5,9 +5,9 @@ vi.mock('bcrypt', () => ({
     compare: async () => true,
   },
 }));
-import { User, UserRole, UserStatus, createUserDTOSchema } from '@modules/user/domain/entities/User.js';
-import { RegisterUser } from '@modules/user/domain/usecases/RegisterUser.js';
-import type { IUserRepository } from '@modules/user/domain/ports/IUserRepository.js';
+import { User, UserRole, UserStatus, createUserDTOSchema } from '@modules/user/domain/entities/User';
+import { RegisterUser } from '@modules/user/domain/usecases/RegisterUser';
+import type { IUserRepository } from '@modules/user/domain/ports/IUserRepository';
 
 describe('RegisterUserUseCase Integration', () => {
   let registerUseCase: RegisterUser;
