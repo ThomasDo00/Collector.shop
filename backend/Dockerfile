@@ -7,6 +7,7 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+COPY tsconfig.json ./
 
 # Install dependencies (use npm ci when a lockfile exists, otherwise fall back to npm install)
 RUN if [ -f package-lock.json ]; then \
@@ -15,8 +16,8 @@ RUN if [ -f package-lock.json ]; then \
       npm install --production; \
     fi
 
-# Copy source code
-COPY . .
+# Copy only necessary source code (excludes .env, secrets, etc.)
+COPY src ./src
 
 # Build TypeScript
 RUN npm run build
@@ -33,10 +34,13 @@ RUN apk add --no-cache dumb-init
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
-# Copy dependencies and built files
-COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
-COPY --from=builder --chown=nodejs:nodejs /app/package*.json ./
+# Copy dependencies and built files with read-only permissions
+COPY --from=builder --chown=root:root /app/node_modules ./node_modules
+COPY --from=builder --chown=root:root /app/dist ./dist
+COPY --from=builder --chown=root:root /app/package*.json ./
+
+# Set read-only permissions (555 = r-x for all, no write)
+RUN chmod -R 555 /app
 
 # Switch to non-root user
 USER nodejs

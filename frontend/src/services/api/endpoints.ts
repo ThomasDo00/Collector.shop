@@ -11,8 +11,8 @@ export const API_ENDPOINTS = {
     REGISTER: '/users/register',
     REFRESH: '/users/refresh',
     LOGOUT: '/users/logout',
-    FORGOT_PASSWORD: '/users/forgot-password',
-    RESET_PASSWORD: '/users/reset-password',
+    FORGOT_PASSWORD: '/users/forgot-password', // NOSONAR - API endpoint, not a password
+    RESET_PASSWORD: '/users/reset-password', // NOSONAR - API endpoint, not a password
     VERIFY_EMAIL: '/users/verify-email',
   },
 
@@ -20,7 +20,7 @@ export const API_ENDPOINTS = {
   USERS: {
     PROFILE: (userId?: string) => userId ? `/users/${userId}/profile` : '/users/profile',
     UPDATE_PROFILE: '/users/profile',
-    CHANGE_PASSWORD: '/users/change-password',
+    CHANGE_PASSWORD: '/users/change-password', // NOSONAR - API endpoint, not a password
     SETTINGS: '/users/settings',
     LISTINGS: (userId: string) => `/users/${userId}/listings`,
     REVIEWS: (userId: string) => `/users/${userId}/reviews`,

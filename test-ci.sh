@@ -37,7 +37,7 @@ echo ""
 # 1. Install dependencies
 echo "📦 Installation des dépendances..."
 if [ ! -d "node_modules" ]; then
-    npm install
+    npm install --ignore-scripts
 fi
 echo -e "${GREEN}✅ Dépendances installées${NC}"
 echo ""
