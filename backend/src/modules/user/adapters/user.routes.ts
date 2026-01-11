@@ -255,4 +255,176 @@ export async function userRoutes(fastify: FastifyInstance) {
   fastify.get('/health', async () => {
     return { status: 'ok', module: 'users' };
   });
+
+  /**
+   * GET /api/users/profile/:username
+   * Get user profile by username
+   */
+  fastify.get<{ Params: { username: string } }>('/profile/:username', async (request, reply) => {
+    const { username } = request.params;
+
+    const user = await db('users')
+      .select(
+        'id',
+        'username',
+        'email',
+        'first_name as firstName',
+        'last_name as lastName',
+        'avatar_url as avatarUrl',
+        'bio',
+        'location',
+        'created_at as memberSince',
+        'role',
+        'status'
+      )
+      .where('username', username)
+      .first();
+
+    if (!user) {
+      return reply.status(404).send({ error: 'USER_NOT_FOUND', message: 'User not found' });
+    }
+
+    // Get user statistics
+    const [salesCountResult, reviewsResult] = await Promise.all([
+      db('products')
+        .where('seller_id', user.id)
+        .andWhere('status', 'sold')
+        .count('* as count')
+        .first(),
+      db('reviews')
+        .where('seller_id', user.id)
+        .select(
+          db.raw('COUNT(*) as count'),
+          db.raw('AVG(rating) as average_rating')
+        )
+        .first(),
+    ]);
+
+    const salesCount = Number(salesCountResult?.count || 0);
+    const reviewCount = Number(reviewsResult?.count || 0);
+    const rating = Number(reviewsResult?.average_rating || 0);
+
+    return {
+      success: true,
+      data: {
+        ...user,
+        salesCount,
+        reviewCount,
+        rating: rating ? parseFloat(rating.toFixed(1)) : 0,
+        responseRate: 98, // Mock for now
+        responseTime: '< 1 heure', // Mock for now
+        isVerified: user.status === 'active',
+      },
+    };
+  });
+
+  /**
+   * GET /api/users/profile/:username/listings
+   * Get user's products/listings
+   */
+  fastify.get<{ Params: { username: string }; Querystring: { status?: string } }>(
+    '/profile/:username/listings',
+    async (request, reply) => {
+      const { username } = request.params;
+      const { status } = request.query;
+
+      // Get user ID
+      const user = await db('users')
+        .select('id')
+        .where('username', username)
+        .first();
+
+      if (!user) {
+        return reply.status(404).send({ error: 'USER_NOT_FOUND' });
+      }
+
+      let query = db('products')
+        .select(
+          'products.id',
+          'products.title',
+          'products.price',
+          'products.image_url as imageUrl',
+          'products.category_name as category',
+          'products.condition',
+          'products.status',
+          'products.created_at as createdAt',
+          'users.id as seller.id',
+          'users.username as seller.username'
+        )
+        .leftJoin('users', 'products.seller_id', 'users.id')
+        .where('products.seller_id', user.id);
+
+      if (status) {
+        query = query.where('products.status', status);
+      }
+
+      const products = await query.orderBy('products.created_at', 'desc');
+
+      // Transform nested seller object
+      const formattedProducts = products.map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        price: parseFloat(p.price),
+        imageUrl: p.imageUrl,
+        category: p.category,
+        condition: p.condition,
+        status: p.status,
+        createdAt: p.createdAt,
+        seller: {
+          id: p['seller.id'],
+          username: p['seller.username'],
+        },
+      }));
+
+      return { success: true, data: formattedProducts };
+    }
+  );
+
+  /**
+   * GET /api/users/profile/:username/reviews
+   * Get user's reviews
+   */
+  fastify.get<{ Params: { username: string } }>(
+    '/profile/:username/reviews',
+    async (request, reply) => {
+      const { username } = request.params;
+
+      // Get user ID
+      const user = await db('users')
+        .select('id')
+        .where('username', username)
+        .first();
+
+      if (!user) {
+        return reply.status(404).send({ error: 'USER_NOT_FOUND' });
+      }
+
+      const reviews = await db('reviews')
+        .select(
+          'reviews.id',
+          'reviews.rating',
+          'reviews.comment',
+          'reviews.created_at as createdAt',
+          'buyer.username as author.username',
+          'buyer.avatar_url as author.avatarUrl'
+        )
+        .leftJoin('users as buyer', 'reviews.buyer_id', 'buyer.id')
+        .where('reviews.seller_id', user.id)
+        .orderBy('reviews.created_at', 'desc');
+
+      // Transform nested author object
+      const formattedReviews = reviews.map((r: any) => ({
+        id: r.id,
+        rating: r.rating,
+        comment: r.comment,
+        createdAt: r.createdAt,
+        author: {
+          username: r['author.username'],
+          avatarUrl: r['author.avatarUrl'],
+        },
+      }));
+
+      return { success: true, data: formattedReviews };
+    }
+  );
 }

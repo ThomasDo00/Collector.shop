@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -7,24 +7,9 @@ import Button from '@/components/atoms/Button';
 import Input from '@/components/atoms/Input';
 import Icon from '@/components/atoms/Icon';
 import PriceDisplay from '@/components/molecules/PriceDisplay';
-
-// Mock cart data
-const MOCK_CART = {
-  items: [
-    {
-      id: '1',
-      productId: '1',
-      title: 'Nike Air Max 1 "Patta Waves"',
-      price: 450,
-      imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200',
-      seller: { username: 'sneakerhead42' },
-    },
-  ],
-  subtotal: 450,
-  commission: 22.5, // 5%
-  shipping: 8.9,
-  total: 481.4,
-};
+import { cartService, type Cart } from '@/services/cart.service';
+import { useAppSelector } from '@/store';
+import { selectCurrentUser } from '@/features/auth/authSlice';
 
 // Shipping validation schema
 const shippingSchema = z.object({
@@ -52,8 +37,14 @@ const STEPS: { id: CheckoutStep; label: string; icon: string }[] = [
  * Checkout page with multi-step form
  */
 function CheckoutPage() {
+  const currentUser = useAppSelector(selectCurrentUser);
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('cart');
   const [shippingData, setShippingData] = useState<ShippingFormData | null>(null);
+  const [cart, setCart] = useState<Cart | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Use buyer1's ID as default for testing (in real app, use currentUser.id)
+  const userId = currentUser?.id || '550e8400-e29b-41d4-a716-446655440001';
 
   const {
     register,
@@ -66,7 +57,34 @@ function CheckoutPage() {
     },
   });
 
+  // Load cart on mount
+  useEffect(() => {
+    const loadCart = async () => {
+      try {
+        setLoading(true);
+        const cartData = await cartService.getCart(userId);
+        setCart(cartData);
+      } catch (error) {
+        console.error('Failed to load cart:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCart();
+  }, [userId]);
+
   const currentStepIndex = STEPS.findIndex(s => s.id === currentStep);
+
+  if (loading || !cart) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Typography variant="body" className="text-gray-500">
+          Chargement du panier...
+        </Typography>
+      </div>
+    );
+  }
 
   const handleShippingSubmit = (data: ShippingFormData) => {
     setShippingData(data);
@@ -139,7 +157,7 @@ function CheckoutPage() {
 
               {/* Cart Items */}
               <div className="space-y-4 mb-6">
-                {MOCK_CART.items.map(item => (
+                {cart.items.map(item => (
                   <div key={item.id} className="flex gap-4 p-4 bg-gray-50 rounded-lg">
                     <img
                       src={item.imageUrl}
@@ -168,7 +186,7 @@ function CheckoutPage() {
                 ))}
               </div>
 
-              {MOCK_CART.items.length === 0 ? (
+              {cart.items.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
                   <Icon name="cart" size="xl" className="mx-auto mb-4 opacity-50" />
                   <p>Votre panier est vide</p>
@@ -347,7 +365,7 @@ function CheckoutPage() {
                   className="flex-1"
                   onClick={handlePayment}
                 >
-                  Payer {MOCK_CART.total.toLocaleString('fr-FR', {
+                  Payer {cart.total.toLocaleString('fr-FR', {
                     style: 'currency',
                     currency: 'EUR',
                   })}
@@ -366,7 +384,7 @@ function CheckoutPage() {
 
             {/* Items Summary */}
             <div className="space-y-3 mb-6">
-              {MOCK_CART.items.map(item => (
+              {cart.items.map(item => (
                 <div key={item.id} className="flex justify-between text-sm">
                   <span className="text-gray-600 line-clamp-1 flex-1 mr-2">
                     {item.title}
@@ -385,7 +403,7 @@ function CheckoutPage() {
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Sous-total</span>
                 <span>
-                  {MOCK_CART.subtotal.toLocaleString('fr-FR', {
+                  {cart.subtotal.toLocaleString('fr-FR', {
                     style: 'currency',
                     currency: 'EUR',
                   })}
@@ -394,7 +412,7 @@ function CheckoutPage() {
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Commission (5%)</span>
                 <span>
-                  {MOCK_CART.commission.toLocaleString('fr-FR', {
+                  {cart.commission.toLocaleString('fr-FR', {
                     style: 'currency',
                     currency: 'EUR',
                   })}
@@ -403,7 +421,7 @@ function CheckoutPage() {
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Livraison</span>
                 <span>
-                  {MOCK_CART.shipping.toLocaleString('fr-FR', {
+                  {cart.shipping.toLocaleString('fr-FR', {
                     style: 'currency',
                     currency: 'EUR',
                   })}
@@ -414,7 +432,7 @@ function CheckoutPage() {
             <div className="border-t mt-4 pt-4">
               <div className="flex justify-between">
                 <span className="font-semibold">Total</span>
-                <PriceDisplay price={MOCK_CART.total} size="lg" />
+                <PriceDisplay price={cart.total} size="lg" />
               </div>
             </div>
 

@@ -3,10 +3,11 @@ import { config } from 'dotenv';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-config();
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Load .env from project root
+config({ path: path.resolve(__dirname, '../../../../.env') });
 
 // DATABASE_URL must be defined via environment variables (.env or CI/CD secrets)
 // Never hardcode credentials in the source code

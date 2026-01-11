@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Typography from '@/components/atoms/Typography';
 import Button from '@/components/atoms/Button';
@@ -9,51 +9,15 @@ import Breadcrumb from '@/components/molecules/Breadcrumb';
 import Rating from '@/components/molecules/Rating';
 import PriceDisplay from '@/components/molecules/PriceDisplay';
 import ProductGrid from '@/components/organisms/ProductGrid';
+import { catalogService } from '@/services/catalog.service';
 import type { ProductPreview } from '@/types';
 
-// Mock product data
-const MOCK_PRODUCT = {
-  id: '1',
-  title: 'Nike Air Max 1 "Patta Waves" - Monarch',
-  description: `Edition limitee issue de la collaboration entre Nike et Patta, le celebre shop de streetwear d'Amsterdam.
-
-Ce modele "Waves" arbore le fameux motif ondule sur les panneaux lateraux, devenu iconique de cette collaboration. Coloris "Monarch" avec des nuances de orange, marron et blanc casse.
-
-Taille: 42.5 EU / 9 US
-Etat: Neuf avec boite d'origine
-Provenance: SNKRS EU
-Date d'achat: Mars 2022
-
-La paire n'a jamais ete portee, livree avec le papier de soie et les lacets supplementaires d'origine.`,
-  price: 450,
-  images: [
-    'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800',
-    'https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=800',
-    'https://images.unsplash.com/photo-1552346154-21d32810aba3?w=800',
-  ],
-  category: 'Sneakers',
-  condition: 'new' as const,
-  status: 'active' as const,
-  seller: {
-    id: '1',
-    username: 'sneakerhead42',
-    avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100',
-    rating: 4.9,
-    salesCount: 127,
-    memberSince: '2021',
-    responseTime: '< 1 heure',
-  },
-  createdAt: '2024-01-15',
-  views: 342,
-};
-
-// Mock similar products
-const SIMILAR_PRODUCTS: ProductPreview[] = [
-  { id: '5', title: 'Nike Dunk Low "Panda"', price: 180, imageUrl: 'https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=400', category: 'Sneakers', condition: 'new', status: 'active', seller: { id: '5', username: 'kicks_dealer', rating: 4.6 }, createdAt: '2024-01-11' },
-  { id: '11', title: 'Nike Air Jordan 1 "Chicago" 2015', price: 850, imageUrl: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?w=400', category: 'Sneakers', condition: 'very_good', status: 'active', seller: { id: '11', username: 'jordan_king', rating: 4.9 }, createdAt: '2024-01-05' },
-  { id: '13', title: 'Adidas Yeezy Boost 350 V2 "Zebra"', price: 320, imageUrl: 'https://images.unsplash.com/photo-1587563871167-1ee9c731aefb?w=400', category: 'Sneakers', condition: 'like_new', status: 'active', seller: { id: '13', username: 'yeezy_fan', rating: 4.7 }, createdAt: '2024-01-03' },
-  { id: '14', title: 'New Balance 550 "White Green"', price: 160, imageUrl: 'https://images.unsplash.com/photo-1539185441755-769473a23570?w=400', category: 'Sneakers', condition: 'new', status: 'active', seller: { id: '14', username: 'nb_collector', rating: 4.5 }, createdAt: '2024-01-02' },
-];
+// Extended product type for detail page
+interface ProductDetail extends ProductPreview {
+  description?: string;
+  images?: string[];
+  views?: number;
+}
 
 const CONDITION_LABELS: Record<string, string> = {
   new: 'Neuf',
@@ -67,23 +31,67 @@ const CONDITION_LABELS: Record<string, string> = {
  * Product detail page
  */
 function ProductDetailPage() {
-  const { id: _id } = useParams<{ id: string }>();
+  const { id } = useParams<{ id: string }>();
   const [selectedImage, setSelectedImage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [product, setProduct] = useState<ProductDetail | null>(null);
+  const [similarProducts, setSimilarProducts] = useState<ProductPreview[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // In real app, fetch product by id
-  const product = MOCK_PRODUCT;
+  // Load product data
+  useEffect(() => {
+    const loadProduct = async () => {
+      if (!id) return;
+
+      try {
+        setLoading(true);
+        const productData = await catalogService.getProduct(id);
+
+        // Extend product data with additional fields
+        const extendedProduct: ProductDetail = {
+          ...productData,
+          description: 'Description détaillée du produit à venir.', // TODO: Add description field to API
+          images: [productData.imageUrl],
+          views: 0, // TODO: Add view tracking
+        };
+
+        setProduct(extendedProduct);
+
+        // Load similar products (same category)
+        if (productData.category) {
+          const allProducts = await catalogService.getProducts({ category: productData.category });
+          setSimilarProducts(allProducts.filter(p => p.id !== id).slice(0, 4));
+        }
+      } catch (error) {
+        console.error('Failed to load product:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProduct();
+  }, [id]);
+
+  if (loading || !product) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Typography variant="body" className="text-gray-500">
+          Chargement du produit...
+        </Typography>
+      </div>
+    );
+  }
 
   // Breadcrumb items
   const breadcrumbItems = [
     { label: 'Accueil', href: '/' },
     { label: 'Catalogue', href: '/catalog' },
-    { label: product.category, href: `/catalog/${product.category.toLowerCase()}` },
+    { label: product.category || 'Produits', href: `/catalog/${product.category?.toLowerCase()}` },
     { label: product.title },
   ];
 
   return (
-    <div className="min-h-screen bg-white" data-product-id={_id}>
+    <div className="min-h-screen bg-white" data-product-id={id}>
       {/* Breadcrumb */}
       <div className="border-b bg-gray-50">
         <div className="container-page py-4">
@@ -285,7 +293,7 @@ function ProductDetailPage() {
             </Link>
           </div>
 
-          <ProductGrid products={SIMILAR_PRODUCTS} columns={4} />
+          <ProductGrid products={similarProducts} columns={4} />
         </div>
       </section>
     </div>

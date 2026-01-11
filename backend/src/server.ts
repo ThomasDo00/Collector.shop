@@ -14,6 +14,8 @@ import { closeRedisClient } from '@core/cache/index.js';
 
 // Module routes
 import { userRoutes } from '@modules/user/adapters/user.routes.js';
+import { catalogRoutes } from '@modules/catalog/catalog.routes.js';
+import { cartRoutes } from '@modules/cart/cart.routes.js';
 
 const fastify = Fastify({
   logger: {
@@ -119,9 +121,10 @@ async function registerRoutes() {
 
   // API routes
   await fastify.register(userRoutes, { prefix: '/api/users' });
+  await fastify.register(catalogRoutes, { prefix: '/api/catalog' });
+  await fastify.register(cartRoutes, { prefix: '/api/cart' });
 
   // Future modules will be registered here:
-  // await fastify.register(catalogRoutes, { prefix: '/api/catalog' });
   // await fastify.register(paymentRoutes, { prefix: '/api/payments' });
   // await fastify.register(chatRoutes, { prefix: '/api/chat' });
 }

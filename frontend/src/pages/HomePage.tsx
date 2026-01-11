@@ -1,30 +1,50 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Typography from '@/components/atoms/Typography';
 import Button from '@/components/atoms/Button';
 import Icon from '@/components/atoms/Icon';
-
-// Placeholder categories until backend is ready
-const CATEGORIES = [
-  { id: '1', name: 'Sneakers', slug: 'sneakers', imageUrl: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?w=400', itemCount: 234 },
-  { id: '2', name: 'Figurines', slug: 'figurines', imageUrl: 'https://images.unsplash.com/photo-1608889825103-eb5ed706fc64?w=400', itemCount: 156 },
-  { id: '3', name: 'Vinyles', slug: 'vinyl', imageUrl: 'https://images.unsplash.com/photo-1539375665275-f9de415ef9ac?w=400', itemCount: 89 },
-  { id: '4', name: 'Posters', slug: 'posters', imageUrl: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400', itemCount: 167 },
-  { id: '5', name: 'Cartes', slug: 'cards', imageUrl: 'https://images.unsplash.com/photo-1606503153255-59d7e10e6b5e?w=400', itemCount: 312 },
-  { id: '6', name: 'Montres', slug: 'watches', imageUrl: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=400', itemCount: 45 },
-];
-
-// Placeholder featured products
-const FEATURED_PRODUCTS = [
-  { id: '1', title: 'Nike Air Max 1 "Patta"', price: 450, imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400', seller: 'sneakerhead42', rating: 4.9 },
-  { id: '2', title: 'Figurine Dragon Ball Z Goku', price: 180, imageUrl: 'https://images.unsplash.com/photo-1608889825103-eb5ed706fc64?w=400', seller: 'collector_pro', rating: 4.8 },
-  { id: '3', title: 'Vinyle Pink Floyd - The Wall', price: 75, imageUrl: 'https://images.unsplash.com/photo-1539375665275-f9de415ef9ac?w=400', seller: 'vinyl_addict', rating: 5 },
-  { id: '4', title: 'Poster Star Wars Original', price: 220, imageUrl: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400', seller: 'movie_buff', rating: 4.7 },
-];
+import { catalogService } from '@/services/catalog.service';
+import type { Category, ProductPreview } from '@/types';
 
 /**
  * Home page
  */
 function HomePage() {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<ProductPreview[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load data on mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [categoriesData, productsData] = await Promise.all([
+          catalogService.getCategories(),
+          catalogService.getProducts({ sort: 'recent' }), // Get recent products
+        ]);
+        setCategories(categoriesData);
+        setFeaturedProducts(productsData.slice(0, 4)); // Take first 4 as featured
+      } catch (error) {
+        console.error('Failed to load homepage data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Typography variant="body" className="text-gray-500">
+          Chargement...
+        </Typography>
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* Hero Section */}
@@ -91,7 +111,7 @@ function HomePage() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {CATEGORIES.map((category) => (
+            {categories.map((category) => (
               <Link
                 key={category.id}
                 to={`/catalog/${category.slug}`}
@@ -133,7 +153,7 @@ function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {FEATURED_PRODUCTS.map((product) => (
+            {featuredProducts.map((product) => (
               <Link
                 key={product.id}
                 to={`/product/${product.id}`}
@@ -161,7 +181,7 @@ function HomePage() {
                   <h3 className="font-medium text-accent line-clamp-2 mb-1">
                     {product.title}
                   </h3>
-                  <p className="text-sm text-gray-500 mb-2">@{product.seller}</p>
+                  <p className="text-sm text-gray-500 mb-2">@{product.seller.username}</p>
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-lg text-accent">
                       {product.price.toLocaleString('fr-FR', {
@@ -169,10 +189,12 @@ function HomePage() {
                         currency: 'EUR',
                       })}
                     </span>
-                    <div className="flex items-center gap-1 text-sm text-gray-500">
-                      <Icon name="star-solid" size="xs" className="text-warning-500" />
-                      <span>{product.rating}</span>
-                    </div>
+                    {product.seller.rating && (
+                      <div className="flex items-center gap-1 text-sm text-gray-500">
+                        <Icon name="star-solid" size="xs" className="text-warning-500" />
+                        <span>{product.seller.rating}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </Link>

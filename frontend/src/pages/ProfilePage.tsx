@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Typography from '@/components/atoms/Typography';
 import Button from '@/components/atoms/Button';
@@ -9,43 +9,8 @@ import Rating from '@/components/molecules/Rating';
 import ProductGrid from '@/components/organisms/ProductGrid';
 import { useAppSelector } from '@/store';
 import { selectCurrentUser } from '@/features/auth/authSlice';
+import { userService, type UserProfile, type Review } from '@/services/user.service';
 import type { ProductPreview } from '@/types';
-
-// Mock user data
-const MOCK_USER = {
-  id: '1',
-  username: 'sneakerhead42',
-  email: 'sneakerhead42@email.com',
-  avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200',
-  bio: 'Collectionneur passionne de sneakers depuis 2015. Je vends uniquement des pieces authentiques, avec preuves d\'achat et verification possible.',
-  location: 'Paris, France',
-  memberSince: '2021-03-15',
-  rating: 4.9,
-  reviewCount: 89,
-  salesCount: 127,
-  purchasesCount: 45,
-  responseRate: 98,
-  responseTime: '< 1 heure',
-  isVerified: true,
-  socialLinks: {
-    instagram: 'sneakerhead42',
-    twitter: 'sneakerhead42',
-  },
-};
-
-// Mock listings
-const MOCK_LISTINGS: ProductPreview[] = [
-  { id: '1', title: 'Nike Air Max 1 "Patta Waves"', price: 450, imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400', category: 'Sneakers', condition: 'new', status: 'active', seller: { id: '1', username: 'sneakerhead42', rating: 4.9 }, createdAt: '2024-01-15' },
-  { id: '5', title: 'Nike Dunk Low "Panda"', price: 180, imageUrl: 'https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=400', category: 'Sneakers', condition: 'new', status: 'active', seller: { id: '1', username: 'sneakerhead42', rating: 4.9 }, createdAt: '2024-01-11' },
-  { id: '11', title: 'Nike Air Jordan 1 "Chicago"', price: 850, imageUrl: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?w=400', category: 'Sneakers', condition: 'very_good', status: 'sold', seller: { id: '1', username: 'sneakerhead42', rating: 4.9 }, createdAt: '2024-01-05' },
-];
-
-// Mock reviews
-const MOCK_REVIEWS = [
-  { id: '1', rating: 5, comment: 'Vendeur tres serieux, envoi rapide et bien emballe. La paire correspond parfaitement a la description. Je recommande !', author: { username: 'kicks_addict', avatarUrl: null }, createdAt: '2024-01-10' },
-  { id: '2', rating: 5, comment: 'Excellente transaction, communication fluide et produit authentique. Merci !', author: { username: 'collector_92', avatarUrl: null }, createdAt: '2024-01-05' },
-  { id: '3', rating: 4, comment: 'Bonne transaction dans l\'ensemble. Delai d\'envoi un peu long mais produit conforme.', author: { username: 'sneaker_fan', avatarUrl: null }, createdAt: '2023-12-28' },
-];
 
 type TabType = 'listings' | 'reviews' | 'about';
 
@@ -53,24 +18,62 @@ type TabType = 'listings' | 'reviews' | 'about';
  * User profile page
  */
 function ProfilePage() {
-  const { username } = useParams<{ username?: string }>();
+  const { username: usernameParam } = useParams<{ username?: string }>();
   const currentUser = useAppSelector(selectCurrentUser);
   const [activeTab, setActiveTab] = useState<TabType>('listings');
   const [showActiveOnly, setShowActiveOnly] = useState(true);
 
-  // In real app, fetch user by username
-  const user = MOCK_USER;
-  const isOwnProfile = !username || username === currentUser?.username;
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [listings, setListings] = useState<ProductPreview[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Determine which username to use (from URL or current user)
+  const username = usernameParam || currentUser?.username || 'vintage_collector';
+  const isOwnProfile = !usernameParam || usernameParam === currentUser?.username;
+
+  // Load user profile data
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        setLoading(true);
+        const [profileData, listingsData, reviewsData] = await Promise.all([
+          userService.getProfile(username),
+          userService.getListings(username),
+          userService.getReviews(username),
+        ]);
+        setUser(profileData);
+        setListings(listingsData);
+        setReviews(reviewsData);
+      } catch (error) {
+        console.error('Failed to load profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [username]);
 
   const filteredListings = showActiveOnly
-    ? MOCK_LISTINGS.filter(p => p.status === 'active')
-    : MOCK_LISTINGS;
+    ? listings.filter((p) => p.status === 'active')
+    : listings;
 
   const tabs: { id: TabType; label: string; count?: number }[] = [
-    { id: 'listings', label: 'Articles', count: MOCK_LISTINGS.length },
-    { id: 'reviews', label: 'Avis', count: MOCK_REVIEWS.length },
+    { id: 'listings', label: 'Articles', count: listings.length },
+    { id: 'reviews', label: 'Avis', count: reviews.length },
     { id: 'about', label: 'A propos' },
   ];
+
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Typography variant="body" className="text-gray-500">
+          Chargement du profil...
+        </Typography>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -240,8 +243,8 @@ function ProfilePage() {
                 </div>
                 <div className="flex-1 space-y-2">
                   {[5, 4, 3, 2, 1].map(stars => {
-                    const count = MOCK_REVIEWS.filter(r => r.rating === stars).length;
-                    const percentage = (count / MOCK_REVIEWS.length) * 100;
+                    const count = reviews.filter((r) => r.rating === stars).length;
+                    const percentage = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
                     return (
                       <div key={stars} className="flex items-center gap-3">
                         <span className="text-sm w-4">{stars}</span>
@@ -262,7 +265,14 @@ function ProfilePage() {
 
             {/* Reviews List */}
             <div className="space-y-6">
-              {MOCK_REVIEWS.map(review => (
+              {reviews.length === 0 ? (
+                <div className="text-center py-12">
+                  <Typography variant="body" className="text-gray-500">
+                    Aucun avis pour le moment
+                  </Typography>
+                </div>
+              ) : (
+                reviews.map((review) => (
                 <div key={review.id} className="bg-white rounded-lg p-6 shadow-sm">
                   <div className="flex items-start gap-4">
                     <Avatar
@@ -288,7 +298,8 @@ function ProfilePage() {
                     </div>
                   </div>
                 </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         )}
@@ -308,14 +319,10 @@ function ProfilePage() {
               {/* Stats */}
               <div className="mb-8">
                 <Typography variant="h4" className="mb-4">Statistiques</Typography>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="bg-gray-50 rounded-lg p-4 text-center">
                     <p className="text-2xl font-bold text-primary-800">{user.salesCount}</p>
                     <p className="text-sm text-gray-500">Ventes</p>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4 text-center">
-                    <p className="text-2xl font-bold text-primary-800">{user.purchasesCount}</p>
-                    <p className="text-sm text-gray-500">Achats</p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4 text-center">
                     <p className="text-2xl font-bold text-primary-800">{user.responseRate}%</p>
@@ -327,37 +334,6 @@ function ProfilePage() {
                   </div>
                 </div>
               </div>
-
-              {/* Social Links */}
-              {user.socialLinks && (
-                <div>
-                  <Typography variant="h4" className="mb-4">Reseaux sociaux</Typography>
-                  <div className="flex gap-4">
-                    {user.socialLinks.instagram && (
-                      <a
-                        href={`https://instagram.com/${user.socialLinks.instagram}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-gray-600 hover:text-primary-800 transition-colors"
-                      >
-                        <Icon name="instagram" size="md" />
-                        <span>@{user.socialLinks.instagram}</span>
-                      </a>
-                    )}
-                    {user.socialLinks.twitter && (
-                      <a
-                        href={`https://twitter.com/${user.socialLinks.twitter}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-gray-600 hover:text-primary-800 transition-colors"
-                      >
-                        <Icon name="twitter" size="md" />
-                        <span>@{user.socialLinks.twitter}</span>
-                      </a>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         )}
