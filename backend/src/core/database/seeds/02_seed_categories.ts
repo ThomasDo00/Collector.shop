@@ -1,4 +1,5 @@
 import { Knex } from 'knex';
+import { logger } from '../../../core/logger/index.js';
 
 /**
  * Seed categories table with test data
@@ -71,5 +72,5 @@ export async function seed(knex: Knex): Promise<void> {
     },
   ]);
 
-  console.log('✅ Categories seeded successfully');
+  logger.info('✅ Categories seeded successfully');
 }

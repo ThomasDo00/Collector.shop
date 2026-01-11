@@ -1,5 +1,6 @@
 import { Knex } from 'knex';
 import bcrypt from 'bcrypt';
+import { logger } from '../../../core/logger/index.js';
 
 /**
  * Seed users table with test data
@@ -96,8 +97,8 @@ export async function seed(knex: Knex): Promise<void> {
     },
   ]);
 
-  console.log('✅ Users seeded successfully');
-  console.log('📧 Test credentials:');
-  console.log('   Email: buyer1@collector.shop');
-  console.log('   Password: Test123!@#');
+  logger.info('✅ Users seeded successfully');
+  logger.info('📧 Test credentials:');
+  logger.info('   Email: buyer1@collector.shop');
+  logger.info('   Password: Test123!@#');
 }

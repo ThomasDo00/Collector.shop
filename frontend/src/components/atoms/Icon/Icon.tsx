@@ -46,6 +46,7 @@ import {
   HeartIcon as HeartSolidIcon,
   StarIcon as StarSolidIcon,
 } from '@heroicons/react/24/solid';
+import { logger } from '@/core/logger';
 
 export type IconName =
   | 'heart'
@@ -183,7 +184,7 @@ function Icon({
   const IconComponent = iconMap[name];
 
   if (!IconComponent) {
-    console.warn(`Icon "${name}" not found`);
+    logger.warn(`Icon "${name}" not found`);
     return null;
   }
 

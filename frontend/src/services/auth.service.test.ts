@@ -18,8 +18,7 @@ import * as client from './api/client';
 
 describe('authService', () => {
   const mocked = vi.mocked(client);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mockPost = mocked.apiClient.post as any;
+  const mockPost = mocked.apiClient.post as ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();

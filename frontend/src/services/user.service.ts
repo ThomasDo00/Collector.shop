@@ -1,4 +1,4 @@
-import { apiClient } from './api/apiClient';
+import { apiClient } from './api/client';
 import type { ProductPreview } from '@/types';
 
 export interface UserProfile {

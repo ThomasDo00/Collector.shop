@@ -7,6 +7,7 @@ import Breadcrumb from '@/components/molecules/Breadcrumb';
 import ProductGrid from '@/components/organisms/ProductGrid';
 import FilterSidebar from '@/components/organisms/FilterSidebar';
 import { catalogService } from '@/services/catalog.service';
+import { logger } from '@/core/logger';
 import type { ProductPreview, ProductFilters, Category } from '@/types';
 
 /**
@@ -50,7 +51,7 @@ function CatalogPage() {
           }
         }
       } catch (error) {
-        console.error('Failed to load catalog data:', error);
+        logger.error('Failed to load catalog data', error);
       } finally {
         setLoading(false);
       }

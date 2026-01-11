@@ -10,6 +10,7 @@ import PriceDisplay from '@/components/molecules/PriceDisplay';
 import { cartService, type Cart } from '@/services/cart.service';
 import { useAppSelector } from '@/store';
 import { selectCurrentUser } from '@/features/auth/authSlice';
+import { logger } from '@/core/logger';
 
 // Shipping validation schema
 const shippingSchema = z.object({
@@ -65,7 +66,7 @@ function CheckoutPage() {
         const cartData = await cartService.getCart(userId);
         setCart(cartData);
       } catch (error) {
-        console.error('Failed to load cart:', error);
+        logger.error('Failed to load cart', error);
       } finally {
         setLoading(false);
       }

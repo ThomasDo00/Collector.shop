@@ -91,7 +91,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       },
     },
   }, async (request) => {
-    const { category, status, minPrice, maxPrice, condition, sort, search } = request.query as any;
+    const { category, status, minPrice, maxPrice, condition, sort, search } = request.query as Record<string, unknown>;
 
     let query = db('products')
       .select(
@@ -184,7 +184,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       },
     },
   }, async (request, reply) => {
-    const { id } = request.params as any;
+    const { id } = request.params as { id: string };
 
     const product = await db('products')
       .select(
@@ -194,7 +194,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
         'users.avatar_url as sellerAvatar'
       )
       .leftJoin('users', 'products.seller_id', 'users.id')
-      .where('products.id', id)
+      .where('products.id', id as string)
       .first();
 
     if (!product) {

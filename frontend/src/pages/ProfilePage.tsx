@@ -10,6 +10,7 @@ import ProductGrid from '@/components/organisms/ProductGrid';
 import { useAppSelector } from '@/store';
 import { selectCurrentUser } from '@/features/auth/authSlice';
 import { userService, type UserProfile, type Review } from '@/services/user.service';
+import { logger } from '@/core/logger';
 import type { ProductPreview } from '@/types';
 
 type TabType = 'listings' | 'reviews' | 'about';
@@ -46,7 +47,7 @@ function ProfilePage() {
         setListings(listingsData);
         setReviews(reviewsData);
       } catch (error) {
-        console.error('Failed to load profile:', error);
+        logger.error('Failed to load profile', error);
       } finally {
         setLoading(false);
       }

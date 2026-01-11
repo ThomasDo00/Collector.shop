@@ -8,7 +8,7 @@ export async function cartRoutes(fastify: FastifyInstance) {
    * GET /api/cart/:userId
    * Get user's cart with calculated totals
    */
-  fastify.get<{ Params: { userId: string } }>('/:userId', async (request, reply) => {
+  fastify.get<{ Params: { userId: string } }>('/:userId', async (request, _reply) => {
     const { userId } = request.params;
 
     // Get cart items with product details
@@ -40,20 +40,20 @@ export async function cartRoutes(fastify: FastifyInstance) {
     }
 
     // Format items
-    const formattedItems = cartItems.map((item: any) => ({
+    const formattedItems = cartItems.map((item: Record<string, unknown>) => ({
       id: item.id,
       productId: item.productId,
       title: item.title,
-      price: parseFloat(item.price),
+      price: parseFloat(item.price as string),
       imageUrl: item.imageUrl,
       seller: {
         username: item['seller.username'],
       },
-      quantity: item.quantity,
+      quantity: Number(item.quantity),
     }));
 
     // Calculate totals
-    const subtotal = formattedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const subtotal = formattedItems.reduce((sum, item) => sum + item.price * Number(item.quantity), 0);
     const commission = subtotal * 0.05; // 5% commission
     const shipping = 8.9; // Fixed shipping for now
     const total = subtotal + commission + shipping;

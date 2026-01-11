@@ -4,6 +4,7 @@ import Typography from '@/components/atoms/Typography';
 import Button from '@/components/atoms/Button';
 import Icon from '@/components/atoms/Icon';
 import { catalogService } from '@/services/catalog.service';
+import { logger } from '@/core/logger';
 import type { Category, ProductPreview } from '@/types';
 
 /**
@@ -26,7 +27,7 @@ function HomePage() {
         setCategories(categoriesData);
         setFeaturedProducts(productsData.slice(0, 4)); // Take first 4 as featured
       } catch (error) {
-        console.error('Failed to load homepage data:', error);
+        logger.error('Failed to load homepage data', error);
       } finally {
         setLoading(false);
       }
@@ -170,7 +171,7 @@ function HomePage() {
                     className="absolute top-3 right-3 p-2 bg-white/90 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={(e) => {
                       e.preventDefault();
-                      console.log('Add to favorites:', product.id);
+                      logger.debug('Add to favorites', { productId: product.id });
                     }}
                     aria-label="Ajouter aux favoris"
                   >

@@ -10,6 +10,7 @@ import Rating from '@/components/molecules/Rating';
 import PriceDisplay from '@/components/molecules/PriceDisplay';
 import ProductGrid from '@/components/organisms/ProductGrid';
 import { catalogService } from '@/services/catalog.service';
+import { logger } from '@/core/logger';
 import type { ProductPreview } from '@/types';
 
 // Extended product type for detail page
@@ -63,7 +64,7 @@ function ProductDetailPage() {
           setSimilarProducts(allProducts.filter(p => p.id !== id).slice(0, 4));
         }
       } catch (error) {
-        console.error('Failed to load product:', error);
+        logger.error('Failed to load product', error);
       } finally {
         setLoading(false);
       }
@@ -107,7 +108,7 @@ function ProductDetailPage() {
             {/* Main Image */}
             <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4">
               <img
-                src={product.images[selectedImage]}
+                src={product.images?.[selectedImage] || product.imageUrl}
                 alt={product.title}
                 className="w-full h-full object-cover"
               />
@@ -115,7 +116,7 @@ function ProductDetailPage() {
 
             {/* Thumbnails */}
             <div className="flex gap-3">
-              {product.images.map((image, index) => (
+              {product.images?.map((image, index) => (
                 <button
                   key={image}
                   onClick={() => setSelectedImage(index)}
@@ -196,22 +197,14 @@ function ProductDetailPage() {
                   </Link>
                   <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
                     <div className="flex items-center gap-1">
-                      <Rating value={product.seller.rating} size="sm" readonly />
-                      <span>({product.seller.rating})</span>
+                      <Rating value={product.seller.rating || 0} size="sm" readonly />
+                      <span>({product.seller.rating || 0})</span>
                     </div>
-                    <span>{product.seller.salesCount} ventes</span>
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Membre depuis {product.seller.memberSince}
-                  </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t">
-                <div className="text-center">
-                  <p className="text-sm text-gray-500">Temps de reponse</p>
-                  <p className="font-medium">{product.seller.responseTime}</p>
-                </div>
+              <div className="grid grid-cols-1 gap-4 mt-4 pt-4 border-t">
                 <div className="text-center">
                   <p className="text-sm text-gray-500">Taux de reponse</p>
                   <p className="font-medium">98%</p>
@@ -244,7 +237,7 @@ function ProductDetailPage() {
                   month: 'long',
                   year: 'numeric'
                 })}</span>
-                <span>{product.views} vues</span>
+                <span>{product.views || 0} vues</span>
               </div>
             </div>
           </div>
@@ -284,13 +277,15 @@ function ProductDetailPage() {
         <div className="container-page">
           <div className="flex items-center justify-between mb-8">
             <Typography variant="h3">Articles similaires</Typography>
-            <Link
-              to={`/catalog/${product.category.toLowerCase()}`}
-              className="text-primary-800 font-medium hover:underline flex items-center gap-1"
-            >
-              Voir tout
-              <Icon name="chevron-right" size="sm" />
-            </Link>
+            {product.category && (
+              <Link
+                to={`/catalog/${product.category.toLowerCase()}`}
+                className="text-primary-800 font-medium hover:underline flex items-center gap-1"
+              >
+                Voir tout
+                <Icon name="chevron-right" size="sm" />
+              </Link>
+            )}
           </div>
 
           <ProductGrid products={similarProducts} columns={4} />

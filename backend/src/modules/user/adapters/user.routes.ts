@@ -361,10 +361,10 @@ export async function userRoutes(fastify: FastifyInstance) {
       const products = await query.orderBy('products.created_at', 'desc');
 
       // Transform nested seller object
-      const formattedProducts = products.map((p: any) => ({
+      const formattedProducts = products.map((p: Record<string, unknown>) => ({
         id: p.id,
         title: p.title,
-        price: parseFloat(p.price),
+        price: parseFloat(p.price as string),
         imageUrl: p.imageUrl,
         category: p.category,
         condition: p.condition,
@@ -413,7 +413,7 @@ export async function userRoutes(fastify: FastifyInstance) {
         .orderBy('reviews.created_at', 'desc');
 
       // Transform nested author object
-      const formattedReviews = reviews.map((r: any) => ({
+      const formattedReviews = reviews.map((r: Record<string, unknown>) => ({
         id: r.id,
         rating: r.rating,
         comment: r.comment,
