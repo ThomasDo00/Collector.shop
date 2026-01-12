@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { getDatabase } from '@core/database/index.js';
+import { parsePrice, roundMoney } from '../../utils/transformers.js';
 
 export async function cartRoutes(fastify: FastifyInstance) {
   const db = getDatabase();
@@ -44,7 +45,7 @@ export async function cartRoutes(fastify: FastifyInstance) {
       id: item.id,
       productId: item.productId,
       title: item.title,
-      price: parseFloat(item.price as string),
+      price: parsePrice(item.price as string),
       imageUrl: item.imageUrl,
       seller: {
         username: item['seller.username'],
@@ -62,10 +63,10 @@ export async function cartRoutes(fastify: FastifyInstance) {
       success: true,
       data: {
         items: formattedItems,
-        subtotal: parseFloat(subtotal.toFixed(2)),
-        commission: parseFloat(commission.toFixed(2)),
+        subtotal: roundMoney(subtotal),
+        commission: roundMoney(commission),
         shipping,
-        total: parseFloat(total.toFixed(2)),
+        total: roundMoney(total),
       },
     };
   });

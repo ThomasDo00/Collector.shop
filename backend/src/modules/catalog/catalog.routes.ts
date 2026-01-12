@@ -1,5 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { getDatabase } from '@core/database/index.js';
+import { transformSeller, parsePrice } from '../../utils/transformers.js';
+import { ErrorResponses } from '../../utils/errors.js';
 
 /**
  * Catalog routes - Products and Categories
@@ -151,17 +153,16 @@ export async function catalogRoutes(fastify: FastifyInstance) {
     const formattedProducts = products.map(p => ({
       id: p.id,
       title: p.title,
-      price: parseFloat(p.price),
-      originalPrice: p.originalPrice ? parseFloat(p.originalPrice) : null,
+      price: parsePrice(p.price),
+      originalPrice: p.originalPrice ? parsePrice(p.originalPrice) : null,
       imageUrl: p.imageUrl,
       category: p.category,
       condition: p.condition,
       status: p.status,
-      seller: {
-        id: p.sellerId,
-        username: p.sellerUsername,
-        rating: 4.8, // TODO: Calculate real rating
-      },
+      seller: transformSeller({
+        sellerId: p.sellerId,
+        sellerUsername: p.sellerUsername,
+      }),
       createdAt: p.createdAt,
     }));
 
@@ -198,11 +199,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       .first();
 
     if (!product) {
-      return reply.status(404).send({
-        success: false,
-        error: 'PRODUCT_NOT_FOUND',
-        message: 'Product not found',
-      });
+      return ErrorResponses.productNotFound(reply);
     }
 
     return {
@@ -211,18 +208,17 @@ export async function catalogRoutes(fastify: FastifyInstance) {
         id: product.id,
         title: product.title,
         description: product.description,
-        price: parseFloat(product.price),
-        originalPrice: product.original_price ? parseFloat(product.original_price) : null,
+        price: parsePrice(product.price),
+        originalPrice: product.original_price ? parsePrice(product.original_price) : null,
         imageUrl: product.image_url,
         category: product.category_name,
         condition: product.condition,
         status: product.status,
-        seller: {
-          id: product.sellerId,
-          username: product.sellerUsername,
-          avatarUrl: product.sellerAvatar,
-          rating: 4.8,
-        },
+        seller: transformSeller({
+          sellerId: product.sellerId,
+          sellerUsername: product.sellerUsername,
+          sellerAvatar: product.sellerAvatar,
+        }),
         createdAt: product.created_at,
       },
     };
