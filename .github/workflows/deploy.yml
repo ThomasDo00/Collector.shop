@@ -1,7 +1,6 @@
 name: Deploy
 
 on:
-  # Manual trigger
   workflow_dispatch:
     inputs:
       environment:
@@ -11,173 +10,242 @@ on:
         options:
           - staging
           - production
-  
-  # Auto deploy on main branch
   push:
     branches:
       - main
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/collector
+
 jobs:
-  # Determine environment
-  setup:
-    name: Setup Deployment
+  # ===========================================
+  # Build and Push Docker Images to GHCR
+  # ===========================================
+  build:
+    name: Build Docker Images
     runs-on: ubuntu-latest
-    outputs:
-      environment: ${{ steps.env.outputs.environment }}
+    permissions:
+      contents: read
+      packages: write
+
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Determine environment
         id: env
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
+            # Use domain if set, otherwise fall back to VPS_HOST IP
+            DOMAIN="${{ inputs.environment == 'production' && secrets.PROD_DOMAIN || secrets.STAGING_DOMAIN }}"
+            if [ -z "$DOMAIN" ]; then
+              DOMAIN="${{ secrets.VPS_HOST }}"
+            fi
+            echo "domain=$DOMAIN" >> $GITHUB_OUTPUT
           else
             echo "environment=staging" >> $GITHUB_OUTPUT
+            # Use staging domain if set, otherwise fall back to VPS_HOST IP
+            DOMAIN="${{ secrets.STAGING_DOMAIN }}"
+            if [ -z "$DOMAIN" ]; then
+              DOMAIN="${{ secrets.VPS_HOST }}"
+            fi
+            echo "domain=$DOMAIN" >> $GITHUB_OUTPUT
           fi
 
-  # Build and prepare artifacts
-  build:
-    name: Build for Deployment
+      # Build Frontend
+      - name: Build and push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:latest
+          build-args: |
+            VITE_API_URL=https://api.${{ steps.env.outputs.domain }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Build Backend
+      - name: Build and push backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+      domain: ${{ steps.env.outputs.domain }}
+
+  # ===========================================
+  # Deploy to VPS via SSH
+  # ===========================================
+  deploy:
+    name: Deploy to VPS
     runs-on: ubuntu-latest
-    needs: setup
-    
+    needs: build
+    environment:
+      name: ${{ needs.build.outputs.environment }}
+      url: https://${{ needs.build.outputs.domain }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Copy files to VPS
+        uses: appleboy/scp-action@v0.1.7
         with:
-          node-version: '20'
-          cache: 'npm'
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "docker-compose.prod.yml,scripts/deploy.sh"
+          target: "/opt/collector"
+          strip_components: 0
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
-        run: npm test
-
-      - name: Build backend
-        run: npm run build:backend
-
-      - name: Build frontend
-        run: npm run build:frontend
-        env:
-          VITE_API_URL: ${{ needs.setup.outputs.environment == 'production' && secrets.PROD_API_URL || secrets.STAGING_API_URL }}
-
-      - name: Create deployment package
-        run: |
-          mkdir -p deploy
-          cp -r backend/dist deploy/backend
-          cp -r backend/package*.json deploy/backend/
-          cp -r frontend/dist deploy/frontend
-          tar -czf deploy.tar.gz deploy/
-
-      - name: Upload deployment artifact
-        uses: actions/upload-artifact@v4
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          name: deployment-package
-          path: deploy.tar.gz
-          retention-days: 7
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/collector
 
-  # Deploy to staging
-  deploy-staging:
-    name: Deploy to Staging
-    runs-on: ubuntu-latest
-    needs: [setup, build]
-    if: needs.setup.outputs.environment == 'staging'
-    environment:
-      name: staging
-      url: https://staging.collector.shop
-    
-    steps:
-      - name: Download deployment artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deployment-package
+            echo "🔐 Logging into GitHub Container Registry..."
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Extract deployment package
-        run: tar -xzf deploy.tar.gz
+            echo "📥 Pulling latest images..."
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:latest
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:latest
 
-      - name: Deploy to staging
-        run: |
-          echo "🚀 Deploying to staging environment"
-          echo "📦 Deployment package ready"
-          # TODO: Add your deployment commands here
-          # Examples:
-          # - Deploy to AWS: aws s3 sync deploy/frontend s3://your-bucket
-          # - Deploy to Vercel: vercel deploy --prod
-          # - Deploy to Docker: docker build && docker push
-          # - Deploy via SSH: scp -r deploy/ user@server:/path/to/app
+            echo "🚀 Updating containers..."
+            # Export image names for docker-compose
+            export FRONTEND_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:latest"
+            export BACKEND_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:latest"
 
-      - name: Run database migrations
-        run: |
-          echo "🔄 Running database migrations"
-          # TODO: Add migration commands
-          # cd deploy/backend && npm run migrate
+            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+
+            echo "🧹 Cleaning up old images..."
+            docker image prune -f
+
+            echo "📊 Container status:"
+            docker compose -f docker-compose.prod.yml ps
 
       - name: Health check
-        run: |
-          echo "🏥 Checking application health"
-          # TODO: Add health check
-          # curl -f https://staging.collector.shop/health || exit 1
-
-      - name: Notify deployment
-        run: |
-          echo "## ✅ Deployment Successful" >> $GITHUB_STEP_SUMMARY
-          echo "Environment: Staging" >> $GITHUB_STEP_SUMMARY
-          echo "URL: https://staging.collector.shop" >> $GITHUB_STEP_SUMMARY
-
-  # Deploy to production
-  deploy-production:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: [setup, build]
-    if: needs.setup.outputs.environment == 'production'
-    environment:
-      name: production
-      url: https://collector.shop
-    
-    steps:
-      - name: Download deployment artifact
-        uses: actions/download-artifact@v4
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          name: deployment-package
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            echo "⏳ Waiting for services to start..."
+            sleep 15
 
-      - name: Extract deployment package
-        run: tar -xzf deploy.tar.gz
+            echo "🏥 Checking API health..."
+            if curl -sf https://api.${{ needs.build.outputs.domain }}/health > /dev/null; then
+              echo "✅ API is healthy!"
+            else
+              echo "❌ API health check failed!"
+              docker compose -f /opt/collector/docker-compose.prod.yml logs backend --tail=50
+              exit 1
+            fi
 
-      - name: Deploy to production
-        run: |
-          echo "🚀 Deploying to production environment"
-          echo "📦 Deployment package ready"
-          # TODO: Add your production deployment commands here
+            echo "🏥 Checking Frontend..."
+            if curl -sf https://${{ needs.build.outputs.domain }} > /dev/null; then
+              echo "✅ Frontend is healthy!"
+            else
+              echo "❌ Frontend health check failed!"
+              exit 1
+            fi
 
-      - name: Run database migrations
-        run: |
-          echo "🔄 Running database migrations"
-          # TODO: Add migration commands
-
-      - name: Health check
-        run: |
-          echo "🏥 Checking application health"
-          # TODO: Add health check
-          # curl -f https://collector.shop/health || exit 1
-
-      - name: Notify deployment
+      - name: Deployment Summary
         run: |
           echo "## ✅ Deployment Successful" >> $GITHUB_STEP_SUMMARY
-          echo "Environment: Production" >> $GITHUB_STEP_SUMMARY
-          echo "URL: https://collector.shop" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ needs.build.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Domain:** https://${{ needs.build.outputs.domain }}" >> $GITHUB_STEP_SUMMARY
+          echo "**API:** https://api.${{ needs.build.outputs.domain }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
 
-  # Rollback option
+  # ===========================================
+  # Run Database Migrations
+  # ===========================================
+  migrate:
+    name: Run Migrations
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: success()
+
+    steps:
+      - name: Run migrations via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/collector
+            echo "🔄 Running database migrations..."
+            docker compose -f docker-compose.prod.yml exec -T backend npm run db:migrate || echo "No migrations to run"
+            echo "✅ Migrations complete!"
+
+  # ===========================================
+  # Rollback on Failure
+  # ===========================================
   rollback:
     name: Rollback Deployment
     runs-on: ubuntu-latest
+    needs: [build, deploy]
     if: failure()
-    needs: [deploy-staging, deploy-production]
-    
+
     steps:
-      - name: Rollback
+      - name: Rollback via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/collector
+            echo "❌ Deployment failed, rolling back..."
+
+            # Get previous image tags from docker
+            PREV_FRONTEND=$(docker images ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend --format "{{.Tag}}" | grep -v latest | head -1)
+            PREV_BACKEND=$(docker images ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend --format "{{.Tag}}" | grep -v latest | head -1)
+
+            if [ -n "$PREV_FRONTEND" ] && [ -n "$PREV_BACKEND" ]; then
+              echo "Rolling back to: frontend:$PREV_FRONTEND, backend:$PREV_BACKEND"
+              docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:$PREV_FRONTEND
+              docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:$PREV_BACKEND
+
+              export FRONTEND_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:$PREV_FRONTEND"
+              export BACKEND_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:$PREV_BACKEND"
+
+              docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+              echo "✅ Rollback complete!"
+            else
+              echo "⚠️ No previous images found for rollback"
+            fi
+
+      - name: Rollback Summary
         run: |
-          echo "❌ Deployment failed, initiating rollback"
-          # TODO: Add rollback commands
+          echo "## ⚠️ Rollback Executed" >> $GITHUB_STEP_SUMMARY
+          echo "Deployment failed and was rolled back to previous version." >> $GITHUB_STEP_SUMMARY

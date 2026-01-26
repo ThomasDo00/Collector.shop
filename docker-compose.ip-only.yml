@@ -1,0 +1,138 @@
+version: '3.8'
+
+# ===========================================
+# IP-Only Docker Compose (No Domain/SSL)
+# ===========================================
+# Use this when you don't have a domain yet.
+# Access via: http://YOUR_VPS_IP (no HTTPS)
+#
+# Usage:
+#   docker compose -f docker-compose.ip-only.yml --env-file .env.prod up -d
+# ===========================================
+
+services:
+  # ===========================================
+  # Nginx - Simple Reverse Proxy (no SSL)
+  # ===========================================
+  nginx:
+    image: nginx:alpine
+    container_name: collector-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx-proxy.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - collector-network
+    depends_on:
+      - frontend
+      - backend
+
+  # ===========================================
+  # Frontend - React App
+  # ===========================================
+  frontend:
+    image: ${FRONTEND_IMAGE:-ghcr.io/thomasdo00/collector-frontend:latest}
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://${VPS_IP}/api
+    container_name: collector-frontend
+    restart: unless-stopped
+    networks:
+      - collector-network
+
+  # ===========================================
+  # Backend - Fastify API
+  # ===========================================
+  backend:
+    image: ${BACKEND_IMAGE:-ghcr.io/thomasdo00/collector-backend:latest}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: collector-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      CORS_ORIGIN: http://${VPS_IP}
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET: ${S3_BUCKET:-collector-images}
+    networks:
+      - collector-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ===========================================
+  # PostgreSQL Database
+  # ===========================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: collector-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - collector-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
+  # Redis Cache
+  # ===========================================
+  redis:
+    image: redis:7-alpine
+    container_name: collector-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - collector-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
+  # MinIO (S3-compatible storage)
+  # ===========================================
+  minio:
+    image: minio/minio:latest
+    container_name: collector-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - collector-network
+
+networks:
+  collector-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:

@@ -9,18 +9,17 @@ WORKDIR /app
 COPY package*.json ./
 COPY tsconfig.json ./
 
-# Install dependencies (use npm ci when a lockfile exists, otherwise fall back to npm install)
-RUN if [ -f package-lock.json ]; then \
-      npm ci --only=production; \
-    else \
-      npm install --production; \
-    fi
+# Install ALL dependencies (including devDependencies for TypeScript build)
+RUN npm ci
 
-# Copy only necessary source code (excludes .env, secrets, etc.)
+# Copy source code
 COPY src ./src
 
 # Build TypeScript
 RUN npm run build
+
+# Remove devDependencies after build
+RUN npm prune --production
 
 # Production stage
 FROM node:20-alpine

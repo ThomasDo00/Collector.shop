@@ -8,16 +8,17 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies with security flags
-RUN npm ci --ignore-scripts --omit=dev
+# Install ALL dependencies (including devDependencies for Vite build)
+RUN npm ci
 
-# Copy only necessary source code (excludes .env, secrets, etc.)
+# Copy source code
 COPY public ./public
 COPY src ./src
 COPY index.html ./
 COPY tsconfig.json ./
 COPY tsconfig.node.json ./
 COPY vite.config.ts ./
+COPY .eslintrc.cjs ./
 
 # Build argument for API URL
 ARG VITE_API_URL
