@@ -16,7 +16,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_PREFIX: ${{ github.repository_owner }}/collector
+  # Force lowercase for Docker compatibility
+  IMAGE_PREFIX: thomasdo00/collector
 
 jobs:
   # ===========================================
