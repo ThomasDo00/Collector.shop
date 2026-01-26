@@ -12,13 +12,14 @@ COPY package*.json ./
 RUN npm ci
 
 # Copy source code
-COPY public ./public
 COPY src ./src
 COPY index.html ./
 COPY tsconfig.json ./
 COPY tsconfig.node.json ./
 COPY vite.config.ts ./
 COPY .eslintrc.cjs ./
+COPY tailwind.config.js ./
+COPY postcss.config.js ./
 
 # Build argument for API URL
 ARG VITE_API_URL
