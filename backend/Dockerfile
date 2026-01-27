@@ -18,9 +18,6 @@ COPY src ./src
 # Build TypeScript
 RUN npm run build
 
-# Remove devDependencies after build
-RUN npm prune --production
-
 # Production stage
 FROM node:20-alpine
 
@@ -29,20 +26,16 @@ WORKDIR /app
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+# Copy package files and install ALL dependencies (need tsx for migrations/seeds)
+COPY package*.json ./
+COPY tsconfig.json ./
+RUN npm install
 
-# Copy dependencies and built files with read-only permissions
-COPY --from=builder --chown=root:root /app/node_modules ./node_modules
-COPY --from=builder --chown=root:root /app/dist ./dist
-COPY --from=builder --chown=root:root /app/package*.json ./
+# Copy source code (needed for migrations/seeds with tsx)
+COPY --from=builder /app/src ./src
 
-# Set read-only permissions (555 = r-x for all, no write)
-RUN chmod -R 555 /app
-
-# Switch to non-root user
-USER nodejs
+# Copy built files
+COPY --from=builder /app/dist ./dist
 
 # Expose port
 EXPOSE 3000
