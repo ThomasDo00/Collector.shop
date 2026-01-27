@@ -31,25 +31,13 @@ RUN npm run build
 # Production stage - serve with nginx
 FROM nginx:alpine
 
-# Create non-root user for nginx
-RUN addgroup -g 1001 -S nginx-user && \
-    adduser -S nginx-user -u 1001 -G nginx-user
-
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy built files from builder with read-only permissions
-COPY --from=builder --chown=root:root /app/dist /usr/share/nginx/html
+# Copy built files from builder
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Set permissions for nginx directories (nginx needs to write to these)
-RUN chown -R nginx-user:nginx-user /var/cache/nginx /var/run /var/log/nginx && \
-    chmod -R 755 /var/cache/nginx /var/run /var/log/nginx && \
-    chmod -R 555 /usr/share/nginx/html
-
-# Switch to non-root user
-USER nginx-user
-
-# Expose port (use 8080 for non-root user)
+# Expose port
 EXPOSE 8080
 
 # Health check
