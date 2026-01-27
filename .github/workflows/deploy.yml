@@ -205,14 +205,22 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
+            set -e
             cd /opt/collector
+
+            echo "⏳ Waiting for backend to be ready..."
+            sleep 10
+
             echo "🔄 Running database migrations..."
-            docker compose -f docker-compose.ip-only.yml --env-file .env.prod exec -T backend npm run db:migrate || echo "No migrations to run"
+            docker compose -f docker-compose.ip-only.yml --env-file .env.prod exec -T backend npm run db:migrate
             echo "✅ Migrations complete!"
 
             echo "🌱 Running database seeds..."
-            docker compose -f docker-compose.ip-only.yml --env-file .env.prod exec -T backend npm run db:seed || echo "Seeds already applied or skipped"
+            docker compose -f docker-compose.ip-only.yml --env-file .env.prod exec -T backend npm run db:seed
             echo "✅ Seeding complete!"
+
+            echo "📊 Verifying tables exist..."
+            docker compose -f docker-compose.ip-only.yml --env-file .env.prod exec -T postgres psql -U \${POSTGRES_USER} -d \${POSTGRES_DB} -c "\\dt"
 
   # ===========================================
   # Rollback on Failure
