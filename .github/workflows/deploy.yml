@@ -148,7 +148,7 @@ jobs:
             docker image prune -f
 
             echo "📊 Container status:"
-            docker compose -f docker-compose.ip-only.yml ps
+            docker compose -f docker-compose.ip-only.yml --env-file .env.prod ps
 
       - name: Health check
         uses: appleboy/ssh-action@v1.0.3
@@ -165,7 +165,7 @@ jobs:
               echo "✅ API is healthy!"
             else
               echo "⚠️ API health check skipped (no /health endpoint yet)"
-              docker compose -f /opt/collector/docker-compose.ip-only.yml logs backend --tail=20
+              docker compose -f /opt/collector/docker-compose.ip-only.yml --env-file /opt/collector/.env.prod logs backend --tail=20
             fi
 
             echo "🏥 Checking Frontend..."
@@ -173,7 +173,7 @@ jobs:
               echo "✅ Frontend is healthy!"
             else
               echo "⚠️ Frontend check - showing container status"
-              docker compose -f /opt/collector/docker-compose.ip-only.yml ps
+              docker compose -f /opt/collector/docker-compose.ip-only.yml --env-file /opt/collector/.env.prod ps
             fi
 
       - name: Deployment Summary
@@ -204,7 +204,7 @@ jobs:
           script: |
             cd /opt/collector
             echo "🔄 Running database migrations..."
-            docker compose -f docker-compose.ip-only.yml exec -T backend npm run db:migrate || echo "No migrations to run"
+            docker compose -f docker-compose.ip-only.yml --env-file .env.prod exec -T backend npm run db:migrate || echo "No migrations to run"
             echo "✅ Migrations complete!"
 
   # ===========================================
