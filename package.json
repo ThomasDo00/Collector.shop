@@ -8,6 +8,9 @@
     "backend"
   ],
   "scripts": {
+    "url-app": "http://localhost:8080/",
+    "dev-dockerise-start": "docker compose -f docker-compose.ip-only.yml --env-file .env.local up --build",
+    "dev-dockerise-stop": "docker compose -f docker-compose.ip-only.yml --env-file .env.local down",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:frontend": "npm run dev -w frontend",
     "dev:backend": "npm run dev -w backend",

@@ -207,6 +207,10 @@ jobs:
             docker compose -f docker-compose.ip-only.yml --env-file .env.prod exec -T backend npm run db:migrate || echo "No migrations to run"
             echo "✅ Migrations complete!"
 
+            echo "🌱 Running database seeds..."
+            docker compose -f docker-compose.ip-only.yml --env-file .env.prod exec -T backend npm run db:seed || echo "Seeds already applied or skipped"
+            echo "✅ Seeding complete!"
+
   # ===========================================
   # Rollback on Failure
   # ===========================================
