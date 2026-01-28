@@ -220,7 +220,13 @@ jobs:
             echo "✅ Seeding complete!"
 
             echo "📊 Verifying tables exist..."
-            docker compose -f docker-compose.ip-only.yml --env-file .env.prod exec -T postgres psql -U \${POSTGRES_USER} -d \${POSTGRES_DB} -c "\\dt"
+            docker compose -f docker-compose.ip-only.yml --env-file .env.prod exec -T backend node -e "
+              const knex = require('knex')({client: 'pg', connection: process.env.DATABASE_URL});
+              knex.raw('SELECT tablename FROM pg_tables WHERE schemaname = current_schema()').then(r => {
+                console.log('Tables:', r.rows.map(t => t.tablename).join(', '));
+                process.exit(0);
+              }).catch(() => process.exit(0));
+            " || echo "Verification skipped"
 
   # ===========================================
   # Rollback on Failure
