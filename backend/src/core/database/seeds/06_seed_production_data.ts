@@ -307,7 +307,7 @@ export async function seed(knex: Knex): Promise<void> {
   const reviews: Array<{
     id: string;
     product_id: string;
-    reviewer_id: string;
+    buyer_id: string;
     seller_id: string;
     rating: number;
     comment: string;
@@ -319,7 +319,7 @@ export async function seed(knex: Knex): Promise<void> {
     reviews.push({
       id: uuid(),
       product_id: product.id,
-      reviewer_id: buyer.id,
+      buyer_id: buyer.id,
       seller_id: product.seller_id,
       rating: Math.floor(Math.random() * 2) + 4, // 4 or 5 stars
       comment: reviewTexts[Math.floor(Math.random() * reviewTexts.length)],
