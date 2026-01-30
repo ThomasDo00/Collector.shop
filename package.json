@@ -12,7 +12,7 @@
     "dev-dockerise-start": "docker compose -f docker-compose.ip-only.yml --env-file .env.local up --build",
     "dev-dockerise-stop": "docker compose -f docker-compose.ip-only.yml --env-file .env.local down",
     "dev-dockerise-migration": "docker compose -f docker-compose.ip-only.yml --env-file .env.local exec backend npm run db:migrate && docker compose -f docker-compose.ip-only.yml --env-file .env.local exec backend npm run db:seed",
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev": "npm run dev:services && concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:frontend": "npm run dev -w frontend",
     "dev:backend": "npm run dev -w backend",
     "build": "npm run build -w frontend && npm run build -w backend",
@@ -30,6 +30,8 @@
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
+    "dev:services": "docker compose -f docker-compose.dev.yml up -d",
+    "dev:services:stop": "docker compose -f docker-compose.dev.yml down",
     "test:fullstack": "./test-fullstack.sh",
     "sonar": "sonar-scanner",
     "test:coverage": "npm run test:coverage -w frontend && npm run test:coverage -w backend"
