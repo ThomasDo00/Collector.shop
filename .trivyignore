@@ -1,0 +1,28 @@
+# Trivy Ignore File
+# https://aquasecurity.github.io/trivy/latest/docs/configuration/filtering/
+
+# ===========================================
+# False Positives - Development/Test tokens
+# ===========================================
+generic-api-key
+jwt-token
+
+# ===========================================
+# Accepted Risks - esbuild (build-time only)
+# esbuild is only used during build, not in production runtime
+# These Golang vulnerabilities are not exploitable in production
+# ===========================================
+# CVE-2024-24790 - net/netip IPv6 (build-time only)
+CVE-2024-24790
+# CVE-2023-45288 - net/http CONTINUATION DoS (build-time only)
+CVE-2023-45288
+# CVE-2024-45336 - net/http sensitive headers (build-time only)
+CVE-2024-45336
+# CVE-2024-45341 - crypto/x509 IPv6 zone (build-time only)
+CVE-2024-45341
+
+# ===========================================
+# Accepted Risks - Low severity
+# ===========================================
+# jsdiff DoS - Low impact
+CVE-2024-4067

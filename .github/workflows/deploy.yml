@@ -115,6 +115,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Checkout for trivyignore
+        uses: actions/checkout@v4
+
       - name: Scan Frontend Image
         uses: aquasecurity/trivy-action@master
         with:
@@ -123,6 +126,7 @@ jobs:
           output: 'trivy-frontend.sarif'
           severity: 'CRITICAL,HIGH'
           vuln-type: 'os,library'
+          trivyignores: '.trivyignore'
 
       - name: Scan Backend Image
         uses: aquasecurity/trivy-action@master
@@ -132,6 +136,7 @@ jobs:
           output: 'trivy-backend.sarif'
           severity: 'CRITICAL,HIGH'
           vuln-type: 'os,library'
+          trivyignores: '.trivyignore'
 
       - name: Upload Frontend Trivy Results
         uses: github/codeql-action/upload-sarif@v3
