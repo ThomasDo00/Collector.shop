@@ -40,6 +40,9 @@
   "dependencies": {
     "zod": "^4.2.1"
   },
+  "overrides": {
+    "vite": "^5.4.19"
+  },
   "engines": {
     "node": ">=20.0.0"
   }
