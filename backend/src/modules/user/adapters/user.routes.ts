@@ -13,6 +13,7 @@ import {
 } from '../domain/usecases/LoginUser.js';
 import { createUserDTOSchema } from '../domain/entities/User.js';
 import { env } from '@core/config/env.js';
+import { cacheSet } from '@core/cache/index.js';
 
 // Request body schemas
 const registerBodySchema = createUserDTOSchema;
@@ -246,6 +247,44 @@ export async function userRoutes(fastify: FastifyInstance) {
       }
     }
   );
+
+  /**
+   * POST /api/users/logout
+   * Revoke the current JWT access token by adding it to the Redis blacklist
+   */
+  fastify.post('/logout', {
+    schema: {
+      description: 'Logout and revoke the current access token',
+      tags: ['Users'],
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+          },
+        },
+      },
+    },
+  }, async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      // Token invalid or missing — clear client-side anyway
+      return reply.status(200).send({ success: true, message: 'Logged out' });
+    }
+
+    const token = request.headers.authorization?.slice(7);
+    if (token) {
+      const user = request.user as { exp?: number };
+      const ttl = user.exp ? Math.max(0, user.exp - Math.floor(Date.now() / 1000)) : 3600;
+      if (ttl > 0) {
+        await cacheSet(`blacklist:${token}`, '1', ttl);
+      }
+    }
+
+    return reply.status(200).send({ success: true, message: 'Logged out successfully' });
+  });
 
   /**
    * GET /api/users/health

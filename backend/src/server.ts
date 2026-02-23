@@ -11,7 +11,7 @@ import multipart from '@fastify/multipart';
 import { env } from '@core/config/env.js';
 import { logger } from '@core/logger/index.js';
 import { closeDatabase } from '@core/database/index.js';
-import { closeRedisClient } from '@core/cache/index.js';
+import { getRedisClient, closeRedisClient, cacheGet } from '@core/cache/index.js';
 import { initStorage } from '@core/storage/index.js';
 
 // Module routes
@@ -49,11 +49,15 @@ async function registerPlugins() {
     contentSecurityPolicy: env.NODE_ENV === 'production',
   });
 
-  // Rate limiting (100 requests per minute)
+  // Rate limiting (100 requests per minute) — in-memory store
+  // Note: @fastify/rate-limit requires ioredis (not redis v4) for Redis-backed rate-limiting
   await fastify.register(rateLimit, {
     max: 100,
     timeWindow: '1 minute',
   });
+
+  // Connect Redis eagerly so cache and blacklist are ready on first request
+  await getRedisClient();
 
   // Sensible defaults (better error handling)
   await fastify.register(sensible);
@@ -102,6 +106,26 @@ async function registerPlugins() {
 
 // Register routes
 async function registerRoutes() {
+  // JWT blacklist check — runs on every request with a Bearer token
+  fastify.addHook('onRequest', async (request, reply) => {
+    const auth = request.headers.authorization;
+    if (auth?.startsWith('Bearer ')) {
+      const token = auth.slice(7);
+      try {
+        const blacklisted = await cacheGet(`blacklist:${token}`);
+        if (blacklisted) {
+          return reply.status(401).send({
+            success: false,
+            error: 'TOKEN_REVOKED',
+            message: 'Token has been revoked. Please login again.',
+          });
+        }
+      } catch {
+        // Redis unavailable — fail open (request proceeds)
+      }
+    }
+  });
+
   // Health check
   fastify.get('/health', {
     schema: {
