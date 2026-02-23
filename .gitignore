@@ -46,6 +46,9 @@ coverage/
 # Docker
 docker-data/
 
+# K3s
+k3s/01-secrets.yaml
+
 # OS
 Thumbs.db
 

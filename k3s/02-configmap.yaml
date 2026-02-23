@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: collector-config
+  namespace: collector-prod
+data:
+  NODE_ENV: "production"
+  PORT: "3000"
+  POSTGRES_USER: "collector"
+  POSTGRES_DB: "collector_prod"
+  JWT_EXPIRES_IN: "7d"
+  CORS_ORIGIN: "https://collector-shop.online,https://www.collector-shop.online"
+  S3_ENDPOINT: "http://minio:9000"
+  S3_BUCKET: "collector-images"
+  EMAIL_FROM: "noreply@collector-shop.online"
