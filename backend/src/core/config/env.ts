@@ -32,6 +32,13 @@ const envSchema = z.object({
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_PUBLIC_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
+
+  // S3 / MinIO
+  S3_ENDPOINT: z.string().url(),
+  S3_ACCESS_KEY: z.string().min(1),
+  S3_SECRET_KEY: z.string().min(1),
+  S3_BUCKET: z.string().default('collector-images'),
+  S3_REGION: z.string().default('us-east-1'),
 });
 
 const parsed = envSchema.safeParse(process.env);

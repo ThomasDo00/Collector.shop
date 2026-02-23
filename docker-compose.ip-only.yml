@@ -65,6 +65,7 @@ services:
       S3_ACCESS_KEY: ${S3_ACCESS_KEY}
       S3_SECRET_KEY: ${S3_SECRET_KEY}
       S3_BUCKET: ${S3_BUCKET:-collector-images}
+      S3_REGION: ${S3_REGION:-us-east-1}
     networks:
       - collector-network
     depends_on:
@@ -119,6 +120,9 @@ services:
     image: minio/minio:latest
     container_name: collector-minio
     restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
     environment:
       MINIO_ROOT_USER: ${S3_ACCESS_KEY}
       MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY}

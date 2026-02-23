@@ -11,7 +11,7 @@ import {
   AccountBannedError,
   loginCredentialsSchema
 } from '../domain/usecases/LoginUser.js';
-import { createUserDTOSchema, userResponseSchema } from '../domain/entities/User.js';
+import { createUserDTOSchema } from '../domain/entities/User.js';
 import { env } from '@core/config/env.js';
 
 // Request body schemas
@@ -71,15 +71,14 @@ export async function userRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest<{ Body: RegisterBody }>, reply: FastifyReply) => {
       try {
         const user = await registerUser.execute(request.body);
-        const userResponse = userResponseSchema.parse(user);
 
         return reply.status(201).send({
           success: true,
           message: 'User registered successfully. Please check your email to verify your account.',
           data: {
-            id: userResponse.id,
-            email: userResponse.email,
-            username: userResponse.username,
+            id: user.id,
+            email: user.email,
+            username: user.username,
           },
         });
       } catch (error) {

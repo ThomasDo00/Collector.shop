@@ -6,11 +6,13 @@ import sensible from '@fastify/sensible';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import jwt from '@fastify/jwt';
+import multipart from '@fastify/multipart';
 
 import { env } from '@core/config/env.js';
 import { logger } from '@core/logger/index.js';
 import { closeDatabase } from '@core/database/index.js';
 import { closeRedisClient } from '@core/cache/index.js';
+import { initStorage } from '@core/storage/index.js';
 
 // Module routes
 import { userRoutes } from '@modules/user/adapters/user.routes.js';
@@ -55,6 +57,11 @@ async function registerPlugins() {
 
   // Sensible defaults (better error handling)
   await fastify.register(sensible);
+
+  // Multipart file uploads (max 5MB)
+  await fastify.register(multipart, {
+    limits: { fileSize: 5 * 1024 * 1024 },
+  });
 
   // JWT authentication
   await fastify.register(jwt, {
@@ -150,6 +157,7 @@ async function start() {
   try {
     await registerPlugins();
     await registerRoutes();
+    await initStorage();
 
     await fastify.listen({
       host: env.API_HOST,

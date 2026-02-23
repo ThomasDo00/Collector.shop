@@ -37,6 +37,7 @@ export const API_ENDPOINTS = {
     RECENT: '/catalog/recent',
     SIMILAR: (productId: string) => `/catalog/products/${productId}/similar`,
     SEARCH: '/catalog/search',
+    UPLOAD: '/catalog/upload',
   },
 
   // Cart

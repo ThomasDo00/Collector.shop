@@ -36,4 +36,31 @@ export const catalogService = {
     const response = await apiClient.get(`/catalog/products/${id}`);
     return response.data.data;
   },
+
+  /**
+   * Upload a product image to MinIO via the backend
+   */
+  async uploadImage(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await apiClient.post('/catalog/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data.data.imageUrl;
+  },
+
+  /**
+   * Create a new product listing
+   */
+  async createProduct(data: {
+    title: string;
+    description?: string;
+    price: number;
+    condition: string;
+    categoryId: string;
+    imageUrl: string;
+  }): Promise<ProductPreview> {
+    const response = await apiClient.post('/catalog/products', data);
+    return response.data.data;
+  },
 };

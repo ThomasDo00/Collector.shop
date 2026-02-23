@@ -43,7 +43,7 @@ export class PostgresUserRepository implements IUserRepository {
         username: userData.username,
         password_hash: userData.passwordHash,
         role: UserRole.BUYER, // Default role
-        status: UserStatus.PENDING, // Email verification required
+        status: UserStatus.ACTIVE, // Email verification not yet implemented
         first_name: userData.firstName || null,
         last_name: userData.lastName || null,
         created_at: now,
