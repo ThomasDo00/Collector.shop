@@ -34,6 +34,8 @@ export const userSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
   lastLoginAt: z.date().optional(),
+  mfaEnabled: z.boolean().default(false),
+  mfaSecret: z.string().optional(),
 });
 
 export type User = z.infer<typeof userSchema>;

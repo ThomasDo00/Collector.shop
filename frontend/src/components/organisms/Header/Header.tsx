@@ -65,13 +65,16 @@ function Header() {
       )}
     >
       <div className="container-page">
-        <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Logo */}
+        <div className="flex items-center h-16 md:h-20">
+          {/* Logo - Left */}
           <div className="flex-shrink-0">
             <Logo size="md" />
           </div>
 
-          {/* Desktop Navigation */}
+          {/* Spacer */}
+          <div className="flex-1"></div>
+
+          {/* Desktop Navigation - Center */}
           <nav className="hidden lg:flex items-center gap-8" aria-label="Navigation principale">
             {NAV_LINKS.map((link) => (
               <Link
@@ -95,19 +98,22 @@ function Header() {
             ))}
           </nav>
 
-          {/* Search Bar - Desktop */}
-          <div className="hidden md:block flex-1 max-w-md mx-8">
-            <SearchBar
-              value={searchQuery}
-              onChange={setSearchQuery}
-              onSearch={handleSearch}
-              placeholder="Rechercher un article..."
-              fullWidth
-            />
-          </div>
+          {/* Spacer */}
+          <div className="flex-1"></div>
 
-          {/* Right Side Actions */}
+          {/* Search Bar & Actions - Right */}
           <div className="flex items-center gap-2 md:gap-4">
+            {/* Search Bar - Desktop */}
+            <div className="hidden md:block max-w-sm">
+              <SearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                onSearch={handleSearch}
+                placeholder="Rechercher un article..."
+                fullWidth
+              />
+            </div>
+
             {/* Search Icon - Mobile */}
             <button
               className="md:hidden p-2 text-accent hover:text-primary-800 transition-colors"

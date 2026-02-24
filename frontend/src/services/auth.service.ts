@@ -6,6 +6,9 @@ import type {
   LoginResponse,
   RegisterRequest,
   RegisterResponse,
+  MfaSetupResponse,
+  MfaLoginResult,
+  NormalLoginResult,
 } from '@/types';
 
 /**
@@ -13,20 +16,57 @@ import type {
  */
 export const authService = {
   /**
-   * Login user with email/username and password
+   * Login user with email/username and password.
+   * Returns either a full session (mfaRequired: false) or
+   * a short-lived mfaToken when MFA is enabled (mfaRequired: true).
    */
-  async login(credentials: LoginRequest): Promise<LoginResponse> {
+  async login(credentials: LoginRequest): Promise<MfaLoginResult | NormalLoginResult> {
+    const response = await apiClient.post<
+      { success: boolean; mfaRequired: boolean; data: { mfaToken?: string; accessToken?: string; refreshToken?: string; user?: LoginResponse['user'] } }
+    >(API_ENDPOINTS.AUTH.LOGIN, credentials);
+
+    if (response.data.mfaRequired) {
+      return { mfaRequired: true, mfaToken: response.data.data.mfaToken! };
+    }
+
+    const { accessToken, refreshToken, user } = response.data.data;
+    setTokens(accessToken!, refreshToken!);
+    return { mfaRequired: false, accessToken: accessToken!, refreshToken: refreshToken!, user: user! };
+  },
+
+  /**
+   * Exchange a short-lived mfaToken + TOTP code for full access tokens.
+   */
+  async verifyMfaLogin(mfaToken: string, totpCode: string): Promise<LoginResponse['user']> {
     const response = await apiClient.post<ApiResponse<LoginResponse>>(
-      API_ENDPOINTS.AUTH.LOGIN,
-      credentials
+      API_ENDPOINTS.MFA.VERIFY_LOGIN,
+      { mfaToken, totpCode }
     );
-
-    const { accessToken, refreshToken } = response.data.data;
-
-    // Store tokens
+    const { accessToken, refreshToken, user } = response.data.data;
     setTokens(accessToken, refreshToken);
+    return user;
+  },
 
+  /**
+   * Generate a new TOTP secret and QR code (does not activate MFA yet).
+   */
+  async setupMfa(): Promise<MfaSetupResponse> {
+    const response = await apiClient.post<ApiResponse<MfaSetupResponse>>(API_ENDPOINTS.MFA.SETUP);
     return response.data.data;
+  },
+
+  /**
+   * Confirm MFA activation by verifying the first TOTP code.
+   */
+  async enableMfa(totpCode: string): Promise<void> {
+    await apiClient.post(API_ENDPOINTS.MFA.ENABLE, { totpCode });
+  },
+
+  /**
+   * Disable MFA after verifying the current TOTP code.
+   */
+  async disableMfa(totpCode: string): Promise<void> {
+    await apiClient.post(API_ENDPOINTS.MFA.DISABLE, { totpCode });
   },
 
   /**

@@ -18,6 +18,8 @@ const createMockStore = (isAuthenticated = false, user = null) => {
         isLoading: false,
         error: null,
         isInitialized: true,
+        mfaRequired: false,
+        mfaToken: null,
       },
     },
   });

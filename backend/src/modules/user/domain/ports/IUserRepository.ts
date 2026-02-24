@@ -46,4 +46,9 @@ export interface IUserRepository {
    * Check if username already exists
    */
   usernameExists(username: string): Promise<boolean>;
+
+  /**
+   * Update MFA settings for a user
+   */
+  updateMfa(id: string, mfaEnabled: boolean, mfaSecret: string | null): Promise<User | null>;
 }

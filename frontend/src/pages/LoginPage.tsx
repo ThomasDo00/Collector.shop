@@ -4,23 +4,39 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { login, selectAuthLoading, selectAuthError, clearError } from '@/features/auth/authSlice';
+import {
+  login,
+  verifyMfaLogin,
+  cancelMfa,
+  selectAuthLoading,
+  selectAuthError,
+  selectMfaRequired,
+  clearError,
+} from '@/features/auth/authSlice';
 import Typography from '@/components/atoms/Typography';
 import Input from '@/components/atoms/Input';
 import Button from '@/components/atoms/Button';
 import Icon from '@/components/atoms/Icon';
 import Alert from '@/components/molecules/Alert';
 
-// Validation schema
+// Validation schemas
 const loginSchema = z.object({
   emailOrUsername: z.string().min(1, 'Email ou nom d\'utilisateur requis'),
   password: z.string().min(1, 'Mot de passe requis'),
 });
 
+const mfaSchema = z.object({
+  totpCode: z
+    .string()
+    .length(6, 'Le code doit contenir 6 chiffres')
+    .regex(/^\d+$/, 'Le code ne doit contenir que des chiffres'),
+});
+
 type LoginFormData = z.infer<typeof loginSchema>;
+type MfaFormData = z.infer<typeof mfaSchema>;
 
 /**
- * Login page
+ * Login page — handles both the password step and the MFA step.
  */
 function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -30,28 +46,110 @@ function LoginPage() {
 
   const isLoading = useAppSelector(selectAuthLoading);
   const authError = useAppSelector(selectAuthError);
+  const mfaRequired = useAppSelector(selectMfaRequired);
 
   // Get redirect path from location state
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
+  const mfaSetupDone = (location.state as { mfaSetupDone?: boolean })?.mfaSetupDone ?? false;
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>({
+  const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit = async (data: LoginFormData) => {
+  const mfaForm = useForm<MfaFormData>({
+    resolver: zodResolver(mfaSchema),
+  });
+
+  const onLoginSubmit = async (data: LoginFormData) => {
     dispatch(clearError());
-
     const result = await dispatch(login(data));
-
-    if (login.fulfilled.match(result)) {
+    // Navigate only when MFA is not required (direct login success)
+    if (login.fulfilled.match(result) && !result.payload.mfaRequired) {
       navigate(from, { replace: true });
     }
   };
 
+  const onMfaSubmit = async (data: MfaFormData) => {
+    dispatch(clearError());
+    const result = await dispatch(verifyMfaLogin({ totpCode: data.totpCode }));
+    if (verifyMfaLogin.fulfilled.match(result)) {
+      navigate(from, { replace: true });
+    }
+  };
+
+  const handleCancelMfa = () => {
+    dispatch(cancelMfa());
+    mfaForm.reset();
+  };
+
+  // ── Step 2: MFA verification ──────────────────────────────────────────────
+  if (mfaRequired) {
+    return (
+      <div className="animate-fade-in">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Icon name="shield" size="lg" className="text-primary-800" />
+          </div>
+          <Typography variant="h2" className="mb-2">
+            Verification en 2 etapes
+          </Typography>
+          <Typography color="muted">
+            Entrez le code a 6 chiffres affiche dans votre application d'authentification
+          </Typography>
+        </div>
+
+        {authError && (
+          <Alert
+            variant="error"
+            message={authError.message}
+            onClose={() => dispatch(clearError())}
+            className="mb-6"
+          />
+        )}
+
+        <form onSubmit={mfaForm.handleSubmit(onMfaSubmit)} className="space-y-5">
+          <Input
+            {...mfaForm.register('totpCode')}
+            type="text"
+            inputMode="numeric"
+            label="Code d'authentification"
+            placeholder="000000"
+            error={mfaForm.formState.errors.totpCode?.message}
+            leftIcon={<Icon name="shield" size="sm" />}
+            autoComplete="one-time-code"
+            maxLength={6}
+            className="text-center text-2xl tracking-widest"
+          />
+
+          <Button
+            type="submit"
+            variant="primary"
+            fullWidth
+            isLoading={isLoading}
+            className="mt-2"
+          >
+            Verifier le code
+          </Button>
+
+          <Button
+            type="button"
+            variant="ghost"
+            fullWidth
+            onClick={handleCancelMfa}
+            disabled={isLoading}
+          >
+            Retour a la connexion
+          </Button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-gray-500">
+          Ouvrez Google Authenticator, Authy ou une autre application compatible TOTP pour obtenir votre code.
+        </p>
+      </div>
+    );
+  }
+
+  // ── Step 1: Email + password ──────────────────────────────────────────────
   return (
     <div className="animate-fade-in">
       <div className="text-center mb-8">
@@ -63,6 +161,15 @@ function LoginPage() {
         </Typography>
       </div>
 
+      {/* MFA setup done banner */}
+      {mfaSetupDone && (
+        <Alert
+          variant="success"
+          message="Compte cree et 2FA active ! Connectez-vous maintenant avec votre code d'authentification."
+          className="mb-6"
+        />
+      )}
+
       {/* Error Alert */}
       {authError && (
         <Alert
@@ -73,24 +180,24 @@ function LoginPage() {
         />
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-5">
         <Input
-          {...register('emailOrUsername')}
+          {...loginForm.register('emailOrUsername')}
           type="text"
           label="Email ou nom d'utilisateur"
           placeholder="votre@email.com"
-          error={errors.emailOrUsername?.message}
+          error={loginForm.formState.errors.emailOrUsername?.message}
           leftIcon={<Icon name="email" size="sm" />}
           autoComplete="username"
         />
 
         <div className="relative">
           <Input
-            {...register('password')}
+            {...loginForm.register('password')}
             type={showPassword ? 'text' : 'password'}
             label="Mot de passe"
             placeholder="••••••••"
-            error={errors.password?.message}
+            error={loginForm.formState.errors.password?.message}
             leftIcon={<Icon name="shield" size="sm" />}
             autoComplete="current-password"
             rightIcon={

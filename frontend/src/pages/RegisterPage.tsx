@@ -5,20 +5,21 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { register as registerUser, selectAuthLoading, selectAuthError, clearError } from '@/features/auth/authSlice';
+import { authService } from '@/services/auth.service';
 import Typography from '@/components/atoms/Typography';
 import Input from '@/components/atoms/Input';
 import Button from '@/components/atoms/Button';
 import Icon from '@/components/atoms/Icon';
 import Alert from '@/components/molecules/Alert';
 
-// Validation schema
+// Validation schemas
 const registerSchema = z.object({
-  email: z.string().email('Adresse email invalide'),
   username: z
     .string()
     .min(3, 'Le nom d\'utilisateur doit faire au moins 3 caracteres')
     .max(30, 'Le nom d\'utilisateur ne peut pas depasser 30 caracteres')
     .regex(/^\w+$/, 'Seuls les lettres, chiffres et underscores sont autorises'),
+  email: z.string().email('Adresse email invalide'),
   password: z
     .string()
     .min(8, 'Le mot de passe doit faire au moins 8 caracteres')
@@ -34,36 +35,48 @@ const registerSchema = z.object({
   path: ['confirmPassword'],
 });
 
+const totpSchema = z.object({
+  totpCode: z
+    .string()
+    .length(6, 'Le code doit contenir 6 chiffres')
+    .regex(/^\d+$/, 'Chiffres uniquement'),
+});
+
 type RegisterFormData = z.infer<typeof registerSchema>;
+type TotpFormData = z.infer<typeof totpSchema>;
+
+type Step = 'form' | 'mfa-setup';
 
 /**
- * Registration page
+ * Registration page with mandatory MFA setup.
+ * Step 1: fill in account details.
+ * Step 2: scan QR code and confirm with a TOTP code.
  */
 function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [step, setStep] = useState<Step>('form');
+  const [mfaData, setMfaData] = useState<{ secret: string; qrCode: string } | null>(null);
+  const [mfaLoading, setMfaLoading] = useState(false);
+  const [mfaError, setMfaError] = useState<string | null>(null);
+
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
   const isLoading = useAppSelector(selectAuthLoading);
   const authError = useAppSelector(selectAuthError);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    watch,
-  } = useForm<RegisterFormData>({
+  const registerForm = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-    defaultValues: {
-      acceptTerms: false as unknown as true, // Type hack for checkbox
-    },
+    defaultValues: { acceptTerms: false as unknown as true },
   });
 
-  const password = watch('password', '');
+  const totpForm = useForm<TotpFormData>({
+    resolver: zodResolver(totpSchema),
+  });
 
-  // Password strength indicators
+  const password = registerForm.watch('password', '');
+
   const passwordChecks = [
     { label: '8 caracteres minimum', valid: password.length >= 8 },
     { label: 'Une majuscule', valid: /[A-Z]/.test(password) },
@@ -71,7 +84,8 @@ function RegisterPage() {
     { label: 'Un caractere special', valid: /[^a-zA-Z0-9]/.test(password) },
   ];
 
-  const onSubmit = async (data: RegisterFormData) => {
+  // ── Step 1: create account then auto-login to fetch QR code ──────────────
+  const onRegisterSubmit = async (data: RegisterFormData) => {
     dispatch(clearError());
 
     const result = await dispatch(registerUser({
@@ -80,37 +94,110 @@ function RegisterPage() {
       password: data.password,
     }));
 
-    if (registerUser.fulfilled.match(result)) {
-      setRegistrationSuccess(true);
+    if (!registerUser.fulfilled.match(result)) return;
+
+    // Auto-login in background (stores tokens, does NOT update Redux auth state)
+    setMfaLoading(true);
+    setMfaError(null);
+    try {
+      const loginResult = await authService.login({
+        emailOrUsername: data.email,
+        password: data.password,
+      });
+
+      // MFA can't already be required on a brand new account
+      if (loginResult.mfaRequired) throw new Error('Unexpected MFA state');
+
+      const setup = await authService.setupMfa();
+      setMfaData({ secret: setup.secret, qrCode: setup.qrCode });
+      setStep('mfa-setup');
+    } catch {
+      setMfaError('Impossible de configurer le 2FA. Votre compte a ete cree, connectez-vous pour activer le 2FA depuis les parametres.');
+    } finally {
+      setMfaLoading(false);
     }
   };
 
-  // Success state
-  if (registrationSuccess) {
+  // ── Step 2: confirm TOTP and enable MFA ──────────────────────────────────
+  const onTotpSubmit = async (data: TotpFormData) => {
+    setMfaError(null);
+    setMfaLoading(true);
+    try {
+      await authService.enableMfa(data.totpCode);
+      // Clean up the temporary session — user must now login with MFA
+      authService.clearAuth();
+      navigate('/login', { state: { mfaSetupDone: true } });
+    } catch {
+      setMfaError('Code invalide. Verifiez votre application et reessayez.');
+    } finally {
+      setMfaLoading(false);
+    }
+  };
+
+  // ── Step 2 UI: QR code + TOTP confirmation ───────────────────────────────
+  if (step === 'mfa-setup' && mfaData) {
     return (
-      <div className="animate-fade-in text-center">
-        <div className="w-16 h-16 bg-success-50 rounded-full flex items-center justify-center mx-auto mb-6">
-          <Icon name="success" size="xl" className="text-success-600" />
+      <div className="animate-fade-in">
+        <div className="text-center mb-8">
+          <div className="w-14 h-14 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Icon name="shield" size="lg" className="text-primary-800" />
+          </div>
+          <Typography variant="h2" className="mb-2">
+            Activez votre 2FA
+          </Typography>
+          <Typography color="muted">
+            Votre compte est cree. Scannez le QR code pour securiser votre compte.
+          </Typography>
         </div>
 
-        <Typography variant="h2" className="mb-2">
-          Compte cree !
-        </Typography>
-        <Typography color="muted" className="mb-8">
-          Un email de verification a ete envoye a votre adresse.
-          Veuillez verifier votre boite de reception.
-        </Typography>
+        {mfaError && (
+          <Alert variant="error" message={mfaError} onClose={() => setMfaError(null)} className="mb-6" />
+        )}
 
-        <Button
-          variant="primary"
-          onClick={() => navigate('/login')}
-        >
-          Aller a la connexion
-        </Button>
+        {/* QR code */}
+        <div className="mb-6 flex flex-col items-center gap-3">
+          <img
+            src={mfaData.qrCode}
+            alt="QR code 2FA"
+            className="w-44 h-44 border border-gray-200 rounded-xl p-2"
+          />
+          <Typography color="muted" className="text-xs text-center">
+            Utilisez Google Authenticator, Authy ou une appli compatible TOTP.
+          </Typography>
+        </div>
+
+        {/* Manual secret */}
+        <div className="mb-6">
+          <Typography color="muted" className="text-xs mb-1 text-center">
+            Saisie manuelle :
+          </Typography>
+          <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-mono text-sm tracking-widest text-center break-all select-all">
+            {mfaData.secret}
+          </div>
+        </div>
+
+        {/* TOTP confirmation */}
+        <form onSubmit={totpForm.handleSubmit(onTotpSubmit)} className="space-y-4">
+          <Input
+            {...totpForm.register('totpCode')}
+            type="text"
+            inputMode="numeric"
+            label="Code de confirmation (6 chiffres)"
+            placeholder="000000"
+            error={totpForm.formState.errors.totpCode?.message}
+            leftIcon={<Icon name="shield" size="sm" />}
+            autoComplete="one-time-code"
+            maxLength={6}
+          />
+          <Button type="submit" variant="primary" fullWidth isLoading={mfaLoading}>
+            Confirmer et finaliser l'inscription
+          </Button>
+        </form>
       </div>
     );
   }
 
+  // ── Step 1 UI: registration form ─────────────────────────────────────────
   return (
     <div className="animate-fade-in">
       <div className="text-center mb-8">
@@ -122,7 +209,6 @@ function RegisterPage() {
         </Typography>
       </div>
 
-      {/* Error Alert */}
       {authError && (
         <Alert
           variant="error"
@@ -132,37 +218,41 @@ function RegisterPage() {
         />
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        <Input
-          {...register('email')}
-          type="email"
-          label="Adresse email"
-          placeholder="votre@email.com"
-          error={errors.email?.message}
-          leftIcon={<Icon name="email" size="sm" />}
-          autoComplete="email"
-          required
-        />
+      {mfaError && (
+        <Alert variant="error" message={mfaError} onClose={() => setMfaError(null)} className="mb-6" />
+      )}
 
+      <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-5">
         <Input
-          {...register('username')}
+          {...registerForm.register('username')}
           type="text"
           label="Nom d'utilisateur"
           placeholder="mon_pseudo"
-          error={errors.username?.message}
+          error={registerForm.formState.errors.username?.message}
           leftIcon={<Icon name="user" size="sm" />}
           autoComplete="username"
           helpText="3-30 caracteres, lettres, chiffres et underscore uniquement"
           required
         />
 
+        <Input
+          {...registerForm.register('email')}
+          type="email"
+          label="Adresse email"
+          placeholder="votre@email.com"
+          error={registerForm.formState.errors.email?.message}
+          leftIcon={<Icon name="email" size="sm" />}
+          autoComplete="email"
+          required
+        />
+
         <div>
           <Input
-            {...register('password')}
+            {...registerForm.register('password')}
             type={showPassword ? 'text' : 'password'}
             label="Mot de passe"
             placeholder="••••••••"
-            error={errors.password?.message}
+            error={registerForm.formState.errors.password?.message}
             leftIcon={<Icon name="shield" size="sm" />}
             autoComplete="new-password"
             required
@@ -178,20 +268,14 @@ function RegisterPage() {
             }
           />
 
-          {/* Password strength */}
           {password && (
             <div className="mt-2 space-y-1">
               {passwordChecks.map((check) => (
                 <div
                   key={check.label}
-                  className={`flex items-center gap-2 text-sm ${
-                    check.valid ? 'text-success-600' : 'text-gray-400'
-                  }`}
+                  className={`flex items-center gap-2 text-sm ${check.valid ? 'text-success-600' : 'text-gray-400'}`}
                 >
-                  <Icon
-                    name={check.valid ? 'check' : 'close'}
-                    size="xs"
-                  />
+                  <Icon name={check.valid ? 'check' : 'close'} size="xs" />
                   <span>{check.label}</span>
                 </div>
               ))}
@@ -200,11 +284,11 @@ function RegisterPage() {
         </div>
 
         <Input
-          {...register('confirmPassword')}
+          {...registerForm.register('confirmPassword')}
           type={showConfirmPassword ? 'text' : 'password'}
           label="Confirmer le mot de passe"
           placeholder="••••••••"
-          error={errors.confirmPassword?.message}
+          error={registerForm.formState.errors.confirmPassword?.message}
           leftIcon={<Icon name="shield" size="sm" />}
           autoComplete="new-password"
           required
@@ -223,7 +307,7 @@ function RegisterPage() {
         <label className="flex items-start gap-3 cursor-pointer">
           <input
             type="checkbox"
-            {...register('acceptTerms')}
+            {...registerForm.register('acceptTerms')}
             className="mt-1 w-4 h-4 text-primary-800 border-gray-300 rounded focus:ring-primary-800"
           />
           <span className="text-sm text-gray-600">
@@ -237,28 +321,24 @@ function RegisterPage() {
             </Link>
           </span>
         </label>
-        {errors.acceptTerms && (
-          <p className="text-sm text-error-500 mt-1">{errors.acceptTerms.message}</p>
+        {registerForm.formState.errors.acceptTerms && (
+          <p className="text-sm text-error-500 mt-1">{registerForm.formState.errors.acceptTerms.message}</p>
         )}
 
         <Button
           type="submit"
           variant="primary"
           fullWidth
-          isLoading={isLoading}
+          isLoading={isLoading || mfaLoading}
           className="mt-6"
         >
           Creer mon compte
         </Button>
       </form>
 
-      {/* Login Link */}
       <p className="mt-8 text-center text-sm text-gray-600">
         Deja un compte ?{' '}
-        <Link
-          to="/login"
-          className="font-medium text-primary-800 hover:underline"
-        >
+        <Link to="/login" className="font-medium text-primary-800 hover:underline">
           Se connecter
         </Link>
       </p>

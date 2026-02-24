@@ -9,6 +9,9 @@ export type {
   RegisterResponse,
   UserRole,
   UserStatus,
+  MfaSetupResponse,
+  MfaLoginResult,
+  NormalLoginResult,
 } from './api.types';
 
 // User types

@@ -16,6 +16,14 @@ export const API_ENDPOINTS = {
     VERIFY_EMAIL: '/users/verify-email',
   },
 
+  // MFA
+  MFA: {
+    SETUP: '/users/mfa/setup',
+    ENABLE: '/users/mfa/enable',
+    DISABLE: '/users/mfa/disable',
+    VERIFY_LOGIN: '/users/mfa/verify-login',
+  },
+
   // Users
   USERS: {
     PROFILE: (userId?: string) => userId ? `/users/${userId}/profile` : '/users/profile',
@@ -37,6 +45,7 @@ export const API_ENDPOINTS = {
     RECENT: '/catalog/recent',
     SIMILAR: (productId: string) => `/catalog/products/${productId}/similar`,
     SEARCH: '/catalog/search',
+    UPLOAD: '/catalog/upload',
   },
 
   // Cart

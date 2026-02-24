@@ -55,3 +55,16 @@ export const cacheDel = async (key: string): Promise<void> => {
   const client = await getRedisClient();
   await client.del(key);
 };
+
+// Delete all keys matching a pattern (uses SCAN to avoid blocking)
+export const cacheDelPattern = async (pattern: string): Promise<void> => {
+  const client = await getRedisClient();
+  let cursor = 0;
+  do {
+    const result = await client.scan(cursor, { MATCH: pattern, COUNT: 100 });
+    cursor = result.cursor;
+    if (result.keys.length > 0) {
+      await client.del(result.keys);
+    }
+  } while (cursor !== 0);
+};

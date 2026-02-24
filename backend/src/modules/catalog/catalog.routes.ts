@@ -2,6 +2,14 @@ import { FastifyInstance } from 'fastify';
 import { getDatabase } from '@core/database/index.js';
 import { transformSeller, parsePrice } from '../../utils/transformers.js';
 import { ErrorResponses } from '../../utils/errors.js';
+import { uploadFile } from '@core/storage/index.js';
+import { cacheGet, cacheSet, cacheDel, cacheDelPattern } from '@core/cache/index.js';
+
+const CACHE_TTL = {
+  CATEGORIES: 3600,  // 1 hour — rarely changes
+  PRODUCTS: 300,     // 5 minutes
+  PRODUCT: 300,      // 5 minutes
+} as const;
 
 /**
  * Catalog routes - Products and Categories
@@ -38,9 +46,17 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       },
     },
   }, async () => {
+    const cacheKey = 'catalog:categories';
+    const cached = await cacheGet(cacheKey);
+    if (cached) {
+      return { success: true, data: JSON.parse(cached) };
+    }
+
     const categories = await db('categories')
       .select('id', 'name', 'slug', 'description', 'icon_url as iconUrl', 'product_count as productCount')
       .orderBy('name', 'asc');
+
+    await cacheSet(cacheKey, JSON.stringify(categories), CACHE_TTL.CATEGORIES);
 
     return {
       success: true,
@@ -94,6 +110,17 @@ export async function catalogRoutes(fastify: FastifyInstance) {
     },
   }, async (request) => {
     const { category, status, minPrice, maxPrice, condition, sort, search } = request.query as Record<string, unknown>;
+
+    // Build stable cache key from sorted active filters
+    const activeFilters = Object.entries({ category, status, minPrice, maxPrice, condition, sort, search })
+      .filter(([, v]) => v !== undefined)
+      .sort(([a], [b]) => a.localeCompare(b));
+    const cacheKey = `catalog:products:${JSON.stringify(activeFilters)}`;
+
+    const cached = await cacheGet(cacheKey);
+    if (cached) {
+      return { success: true, data: JSON.parse(cached) };
+    }
 
     let query = db('products')
       .select(
@@ -166,10 +193,118 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       createdAt: p.createdAt,
     }));
 
+    await cacheSet(cacheKey, JSON.stringify(formattedProducts), CACHE_TTL.PRODUCTS);
+
     return {
       success: true,
       data: formattedProducts,
     };
+  });
+
+  // POST /api/catalog/upload - Upload product image (authenticated)
+  fastify.post('/upload', {
+    schema: {
+      description: 'Upload a product image to MinIO storage',
+      tags: ['Catalog'],
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                imageUrl: { type: 'string' },
+              },
+            },
+          },
+        },
+      },
+    },
+  }, async (request, reply) => {
+    await request.jwtVerify();
+
+    const data = await request.file();
+
+    if (!data) {
+      return reply.status(400).send({ success: false, error: 'No file provided' });
+    }
+
+    if (!data.mimetype.startsWith('image/')) {
+      return reply.status(400).send({ success: false, error: 'File must be an image' });
+    }
+
+    const buffer = await data.toBuffer();
+    const imageUrl = await uploadFile(buffer, data.filename, data.mimetype);
+
+    return { success: true, data: { imageUrl } };
+  });
+
+  // POST /api/catalog/products - Create a product (authenticated)
+  fastify.post('/products', {
+    schema: {
+      description: 'Create a new product listing',
+      tags: ['Catalog'],
+      body: {
+        type: 'object',
+        required: ['title', 'price', 'condition', 'categoryId', 'imageUrl'],
+        properties: {
+          title: { type: 'string', minLength: 3, maxLength: 255 },
+          description: { type: 'string', maxLength: 2000 },
+          price: { type: 'number', minimum: 0.01 },
+          condition: { type: 'string', enum: ['new', 'like_new', 'very_good', 'good', 'acceptable'] },
+          categoryId: { type: 'string', format: 'uuid' },
+          imageUrl: { type: 'string' },
+        },
+      },
+    },
+  }, async (request, reply) => {
+    await request.jwtVerify();
+    const sellerId = (request.user as { id: string }).id;
+
+    const { title, description, price, condition, categoryId, imageUrl } = request.body as {
+      title: string;
+      description?: string;
+      price: number;
+      condition: string;
+      categoryId: string;
+      imageUrl: string;
+    };
+
+    const category = await db('categories').where({ id: categoryId }).first();
+    if (!category) {
+      return reply.status(400).send({ success: false, error: 'Invalid category' });
+    }
+
+    const [product] = await db('products').insert({
+      title,
+      description,
+      price,
+      condition,
+      image_url: imageUrl,
+      category_id: categoryId,
+      category_name: category.name,
+      seller_id: sellerId,
+      status: 'active',
+    }).returning('*');
+
+    // Invalidate product listing cache (all filter combinations)
+    await cacheDelPattern('catalog:products:*');
+    await cacheDel('catalog:categories');
+
+    return reply.status(201).send({
+      success: true,
+      data: {
+        id: product.id,
+        title: product.title,
+        price: parsePrice(product.price),
+        imageUrl: product.image_url,
+        condition: product.condition,
+        status: product.status,
+        category: product.category_name,
+        createdAt: product.created_at,
+      },
+    });
   });
 
   // GET /api/catalog/products/:id - Get single product
@@ -187,6 +322,12 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   }, async (request, reply) => {
     const { id } = request.params as { id: string };
 
+    const cacheKey = `catalog:product:${id}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) {
+      return { success: true, data: JSON.parse(cached) };
+    }
+
     const product = await db('products')
       .select(
         'products.*',
@@ -202,25 +343,26 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       return ErrorResponses.productNotFound(reply);
     }
 
-    return {
-      success: true,
-      data: {
-        id: product.id,
-        title: product.title,
-        description: product.description,
-        price: parsePrice(product.price),
-        originalPrice: product.original_price ? parsePrice(product.original_price) : null,
-        imageUrl: product.image_url,
-        category: product.category_name,
-        condition: product.condition,
-        status: product.status,
-        seller: transformSeller({
-          sellerId: product.sellerId,
-          sellerUsername: product.sellerUsername,
-          sellerAvatar: product.sellerAvatar,
-        }),
-        createdAt: product.created_at,
-      },
+    const productData = {
+      id: product.id,
+      title: product.title,
+      description: product.description,
+      price: parsePrice(product.price),
+      originalPrice: product.original_price ? parsePrice(product.original_price) : null,
+      imageUrl: product.image_url,
+      category: product.category_name,
+      condition: product.condition,
+      status: product.status,
+      seller: transformSeller({
+        sellerId: product.sellerId,
+        sellerUsername: product.sellerUsername,
+        sellerAvatar: product.sellerAvatar,
+      }),
+      createdAt: product.created_at,
     };
+
+    await cacheSet(cacheKey, JSON.stringify(productData), CACHE_TTL.PRODUCT);
+
+    return { success: true, data: productData };
   });
 }

@@ -22,6 +22,7 @@ export interface LoginResult {
   username: string;
   role: string;
   status: string;
+  mfaEnabled: boolean;
 }
 
 /**
@@ -78,6 +79,7 @@ export class LoginUser {
       username: user.username,
       role: user.role,
       status: user.status,
+      mfaEnabled: user.mfaEnabled ?? false,
     };
   }
 }
