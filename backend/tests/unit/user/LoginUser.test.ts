@@ -57,6 +57,7 @@ describe('LoginUser Use Case', () => {
         username: mockUser.username,
         role: mockUser.role,
         status: mockUser.status,
+        mfaEnabled: false,
       });
       expect(mockUserRepository.findByEmail).toHaveBeenCalledWith('test@example.com');
       expect(mockUserRepository.update).toHaveBeenCalledWith(mockUser.id, {
@@ -81,6 +82,7 @@ describe('LoginUser Use Case', () => {
         username: mockUser.username,
         role: mockUser.role,
         status: mockUser.status,
+        mfaEnabled: false,
       });
       expect(mockUserRepository.findByEmail).toHaveBeenCalledWith('testuser');
       expect(mockUserRepository.findByUsername).toHaveBeenCalledWith('testuser');

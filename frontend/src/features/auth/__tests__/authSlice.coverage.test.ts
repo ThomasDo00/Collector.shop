@@ -155,7 +155,7 @@ describe('authSlice - Coverage Tests', () => {
         role: 'buyer' as const,
       };
 
-      store.dispatch({ type: login.fulfilled.type, payload: user });
+      store.dispatch({ type: login.fulfilled.type, payload: { mfaRequired: false, user } });
 
       const state = store.getState().auth;
       expect(state.isLoading).toBe(false);
