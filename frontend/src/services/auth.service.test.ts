@@ -25,12 +25,12 @@ describe('authService', () => {
   });
 
   it('login should call api and store tokens', async () => {
-    const resp = { data: { data: { accessToken: 'a', refreshToken: 'r', user: { id: '1' } } } };
+    const resp = { data: { mfaRequired: false, data: { accessToken: 'a', refreshToken: 'r', user: { id: '1' } } } };
     mockPost.mockResolvedValue(resp);
 
     const result = await authService.login({ email: 't', password: 'p' } as unknown as Parameters<typeof authService.login>[0]);
 
-    expect(result).toEqual(resp.data.data);
+    expect(result).toEqual({ mfaRequired: false, accessToken: 'a', refreshToken: 'r', user: { id: '1' } });
     expect(mocked.setTokens).toHaveBeenCalledWith('a', 'r');
   });
 

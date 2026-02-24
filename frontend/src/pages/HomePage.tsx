@@ -15,8 +15,8 @@ function getCategoryImage(categorySlug: string): string {
     sneakers: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&h=400&fit=crop&crop=center',
     figurines: 'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400&h=400&fit=crop&crop=center',
     vinyl: 'https://images.unsplash.com/photo-1603048588665-791ca8aea617?w=400&h=400&fit=crop&crop=center',
-    posters: 'https://images.unsplash.com/photo-1489599651941-b7cc4708180e?w=400&h=400&fit=crop&crop=center',
-    cards: 'https://images.unsplash.com/photo-1621351183012-e2f9972dd9bf?w=400&h=400&fit=crop&crop=center',
+    posters: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=400&h=400&fit=crop&crop=center',
+    cards: 'https://images.unsplash.com/photo-1703023689733-6a4281149189?w=400&h=400&fit=crop&crop=center',
     watches: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop&crop=center',
   };
 
