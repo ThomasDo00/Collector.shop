@@ -78,7 +78,7 @@ describe('authSlice - Coverage Tests', () => {
     it('clearError clears the error', () => {
       // Set an error first
       const stateWithError = authReducer(
-        { user: null, isAuthenticated: false, isLoading: false, isInitialized: false, error: { code: 'TEST_ERROR', message: 'Test' } },
+        { user: null, isAuthenticated: false, isLoading: false, isInitialized: false, error: { code: 'TEST_ERROR', message: 'Test' }, mfaRequired: false, mfaToken: null },
         { type: 'dummy' }
       );
 
@@ -100,6 +100,8 @@ describe('authSlice - Coverage Tests', () => {
         isLoading: false,
         isInitialized: true,
         error: null,
+        mfaRequired: false,
+        mfaToken: null,
       };
 
       const nextState = authReducer(stateWithUser, updateUser({ username: 'newusername' }));
@@ -115,6 +117,8 @@ describe('authSlice - Coverage Tests', () => {
         isLoading: false,
         isInitialized: false,
         error: null,
+        mfaRequired: false,
+        mfaToken: null,
       };
 
       const nextState = authReducer(stateWithoutUser, updateUser({ username: 'newusername' }));

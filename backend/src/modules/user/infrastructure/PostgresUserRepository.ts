@@ -110,6 +110,19 @@ export class PostgresUserRepository implements IUserRepository {
     return Number(result?.count) > 0;
   }
 
+  async updateMfa(id: string, mfaEnabled: boolean, mfaSecret: string | null): Promise<User | null> {
+    const [row] = await this.db(this.TABLE_NAME)
+      .where({ id })
+      .update({
+        mfa_enabled: mfaEnabled,
+        mfa_secret: mfaSecret,
+        updated_at: new Date(),
+      })
+      .returning('*');
+
+    return row ? this.mapToUser(row) : null;
+  }
+
   // Map database row to User entity
   private mapToUser(row: Record<string, unknown>): User {
     return {
@@ -125,6 +138,8 @@ export class PostgresUserRepository implements IUserRepository {
       createdAt: new Date(row.created_at as string),
       updatedAt: new Date(row.updated_at as string),
       lastLoginAt: row.last_login_at ? new Date(row.last_login_at as string) : undefined,
+      mfaEnabled: Boolean(row.mfa_enabled),
+      mfaSecret: row.mfa_secret as string | undefined,
     };
   }
 }

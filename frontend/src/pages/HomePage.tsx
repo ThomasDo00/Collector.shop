@@ -8,6 +8,22 @@ import { logger } from '@/core/logger';
 import type { Category, ProductPreview } from '@/types';
 
 /**
+ * Get generic category image based on category slug
+ */
+function getCategoryImage(categorySlug: string): string {
+  const categoryImages: Record<string, string> = {
+    sneakers: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&h=400&fit=crop&crop=center',
+    figurines: 'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400&h=400&fit=crop&crop=center',
+    vinyl: 'https://images.unsplash.com/photo-1603048588665-791ca8aea617?w=400&h=400&fit=crop&crop=center',
+    posters: 'https://images.unsplash.com/photo-1489599651941-b7cc4708180e?w=400&h=400&fit=crop&crop=center',
+    cards: 'https://images.unsplash.com/photo-1621351183012-e2f9972dd9bf?w=400&h=400&fit=crop&crop=center',
+    watches: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop&crop=center',
+  };
+
+  return categoryImages[categorySlug] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop&crop=center';
+}
+
+/**
  * Home page
  */
 function HomePage() {
@@ -121,7 +137,7 @@ function HomePage() {
                 <div className="card card-hover overflow-hidden">
                   <div className="aspect-square relative">
                     <img
-                      src={category.imageUrl}
+                      src={category.imageUrl || getCategoryImage(category.slug)}
                       alt={category.name}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                       loading="lazy"
@@ -129,7 +145,7 @@ function HomePage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-4">
                       <h3 className="text-white font-semibold">{category.name}</h3>
-                      <p className="text-white/70 text-sm">{category.itemCount} articles</p>
+                      <p className="text-white/70 text-sm">{category.itemCount || category.productCount || 0} articles</p>
                     </div>
                   </div>
                 </div>

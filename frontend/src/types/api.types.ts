@@ -81,3 +81,30 @@ export type UserRole = 'visitor' | 'buyer' | 'seller' | 'admin';
  * User status
  */
 export type UserStatus = 'pending' | 'active' | 'suspended' | 'banned';
+
+/**
+ * MFA setup response (QR code + secret)
+ */
+export interface MfaSetupResponse {
+  secret: string;
+  qrCode: string;
+  mfaEnabled: boolean;
+}
+
+/**
+ * MFA login result (when MFA is required after password check)
+ */
+export interface MfaLoginResult {
+  mfaRequired: true;
+  mfaToken: string;
+}
+
+/**
+ * Normal login result (MFA not enabled)
+ */
+export interface NormalLoginResult {
+  mfaRequired: false;
+  accessToken: string;
+  refreshToken: string;
+  user: LoginResponse['user'];
+}

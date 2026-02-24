@@ -26,6 +26,9 @@ interface AuthState {
   isLoading: boolean;
   isInitialized: boolean;
   error: AppError | null;
+  // MFA intermediate state
+  mfaRequired: boolean;
+  mfaToken: string | null;
 }
 
 const initialState: AuthState = {
@@ -34,19 +37,49 @@ const initialState: AuthState = {
   isLoading: false,
   isInitialized: false,
   error: null,
+  mfaRequired: false,
+  mfaToken: null,
 };
+
+interface LoginResult {
+  user?: AuthUser;
+  mfaRequired: boolean;
+  mfaToken?: string;
+}
 
 /**
  * Login async thunk
  */
 export const login = createAsyncThunk<
-  AuthUser,
+  LoginResult,
   LoginRequest,
   { rejectValue: AppError }
 >('auth/login', async (credentials, { rejectWithValue }) => {
   try {
     const response = await authService.login(credentials);
-    return response.user;
+
+    if (response.mfaRequired) {
+      return { mfaRequired: true, mfaToken: response.mfaToken };
+    }
+
+    return { mfaRequired: false, user: response.user as AuthUser };
+  } catch (error) {
+    return rejectWithValue(handleApiError(error));
+  }
+});
+
+/**
+ * Verify MFA code and complete login
+ */
+export const verifyMfaLogin = createAsyncThunk<
+  AuthUser,
+  { totpCode: string },
+  { rejectValue: AppError; state: RootState }
+>('auth/verifyMfaLogin', async ({ totpCode }, { rejectWithValue, getState }) => {
+  try {
+    const mfaToken = getState().auth.mfaToken!;
+    const user = await authService.verifyMfaLogin(mfaToken, totpCode);
+    return user as AuthUser;
   } catch (error) {
     return rejectWithValue(handleApiError(error));
   }
@@ -133,6 +166,15 @@ const authSlice = createSlice({
     setLoading(state, action: PayloadAction<boolean>) {
       state.isLoading = action.payload;
     },
+
+    /**
+     * Cancel MFA verification (go back to login form)
+     */
+    cancelMfa(state) {
+      state.mfaRequired = false;
+      state.mfaToken = null;
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     // Login
@@ -140,17 +182,43 @@ const authSlice = createSlice({
       .addCase(login.pending, (state) => {
         state.isLoading = true;
         state.error = null;
+        state.mfaRequired = false;
+        state.mfaToken = null;
       })
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload;
-        localStorage.setItem('user', JSON.stringify(action.payload));
+        if (action.payload.mfaRequired) {
+          state.mfaRequired = true;
+          state.mfaToken = action.payload.mfaToken || null;
+        } else {
+          state.isAuthenticated = true;
+          state.user = action.payload.user!;
+          localStorage.setItem('user', JSON.stringify(action.payload.user!));
+        }
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = false;
         state.user = null;
+        state.error = action.payload || null;
+      });
+
+    // Verify MFA login
+    builder
+      .addCase(verifyMfaLogin.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(verifyMfaLogin.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload;
+        state.mfaRequired = false;
+        state.mfaToken = null;
+        localStorage.setItem('user', JSON.stringify(action.payload));
+      })
+      .addCase(verifyMfaLogin.rejected, (state, action) => {
+        state.isLoading = false;
         state.error = action.payload || null;
       });
 
@@ -179,12 +247,16 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
         state.error = null;
+        state.mfaRequired = false;
+        state.mfaToken = null;
         localStorage.removeItem('user');
       })
       .addCase(logout.rejected, (state) => {
         state.isLoading = false;
         state.isAuthenticated = false;
         state.user = null;
+        state.mfaRequired = false;
+        state.mfaToken = null;
         localStorage.removeItem('user');
       });
 
@@ -211,7 +283,7 @@ const authSlice = createSlice({
 });
 
 // Export actions
-export const { clearError, updateUser, setLoading } = authSlice.actions;
+export const { clearError, updateUser, setLoading, cancelMfa } = authSlice.actions;
 
 // Selectors
 export const selectCurrentUser = (state: RootState) => state.auth.user;
@@ -220,5 +292,6 @@ export const selectAuthLoading = (state: RootState) => state.auth.isLoading;
 export const selectAuthError = (state: RootState) => state.auth.error;
 export const selectAuthInitialized = (state: RootState) => state.auth.isInitialized;
 export const selectUserRole = (state: RootState) => state.auth.user?.role;
+export const selectMfaRequired = (state: RootState) => state.auth.mfaRequired;
 
 export default authSlice.reducer;
