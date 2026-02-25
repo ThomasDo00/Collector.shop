@@ -10,7 +10,7 @@ COPY package*.json ./
 COPY tsconfig.json ./
 
 # Install ALL dependencies (including devDependencies for TypeScript build)
-RUN npm install
+RUN npm ci
 
 # Copy source code
 COPY src ./src
@@ -26,16 +26,22 @@ WORKDIR /app
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
 
-# Copy package files and install ALL dependencies (need tsx for migrations/seeds)
+# Copy package files
 COPY package*.json ./
 COPY tsconfig.json ./
-RUN npm install
+
+# Copy node_modules from builder (avoids running install scripts in production)
+COPY --from=builder /app/node_modules ./node_modules
 
 # Copy source code (needed for migrations/seeds with tsx)
 COPY --from=builder /app/src ./src
 
 # Copy built files
 COPY --from=builder /app/dist ./dist
+
+# Use non-root user for security
+RUN chown -R node:node /app
+USER node
 
 # Expose port
 EXPOSE 3000

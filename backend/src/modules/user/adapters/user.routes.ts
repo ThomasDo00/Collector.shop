@@ -18,11 +18,8 @@ import { env } from '@core/config/env.js';
 import { cacheSet } from '@core/cache/index.js';
 
 // Request body schemas
-const registerBodySchema = createUserDTOSchema;
-const loginBodySchema = loginCredentialsSchema;
-
-type RegisterBody = z.infer<typeof registerBodySchema>;
-type LoginBody = z.infer<typeof loginBodySchema>;
+type RegisterBody = z.infer<typeof createUserDTOSchema>;
+type LoginBody = z.infer<typeof loginCredentialsSchema>;
 
 export async function userRoutes(fastify: FastifyInstance) {
   const db = getDatabase();

@@ -9,7 +9,8 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install ALL dependencies (including devDependencies for Vite build)
-RUN npm install
+# --ignore-scripts prevents postinstall scripts from running (supply-chain safety)
+RUN npm ci --ignore-scripts
 
 # Copy source code
 COPY src ./src
@@ -31,11 +32,22 @@ RUN npm run build
 # Production stage - serve with nginx
 FROM nginx:alpine
 
+# Configure permissions for non-root nginx user
+RUN chown -R nginx:nginx /usr/share/nginx/html \
+    && chown -R nginx:nginx /var/cache/nginx \
+    && chown -R nginx:nginx /var/log/nginx \
+    && chown -R nginx:nginx /etc/nginx/conf.d \
+    && touch /var/run/nginx.pid \
+    && chown nginx:nginx /var/run/nginx.pid
+
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Copy built files from builder
 COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Use non-root user for security
+USER nginx
 
 # Expose port
 EXPOSE 8080
