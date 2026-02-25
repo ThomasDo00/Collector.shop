@@ -108,7 +108,7 @@ export async function cartRoutes(fastify: FastifyInstance) {
         }
 
         return { success: true, message: 'Item added to cart' };
-      } catch (error) {
+      } catch {
         return reply.status(500).send({ error: 'FAILED_TO_ADD_ITEM' });
       }
     }
