@@ -110,7 +110,7 @@ describe('ProductDetailPage – coverage', () => {
 
     const favoriteBtn = document.querySelector('[aria-label*="favori"]') ||
                         document.querySelector('button[class*="heart"]') ||
-                        screen.getAllByRole('button').find(btn =>
+                        Array.from(document.querySelectorAll('button')).find(btn =>
                           btn.querySelector('[class*="heart"]') ||
                           btn.getAttribute('aria-label')?.includes('favori')
                         );
@@ -119,8 +119,7 @@ describe('ProductDetailPage – coverage', () => {
       fireEvent.click(favoriteBtn as HTMLElement);
       expect(document.body).toBeTruthy();
     } else {
-      // Button might have different structure
-      const buttons = screen.getAllByRole('button');
+      const buttons = document.querySelectorAll('button');
       expect(buttons.length).toBeGreaterThan(0);
     }
   });

@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import authReducer, { login, verifyMfaLogin } from '@/features/auth/authSlice';
+import authReducer from '@/features/auth/authSlice';
 import LoginPage from './LoginPage';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
