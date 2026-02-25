@@ -229,20 +229,22 @@ jobs:
         run: sleep 30
 
       - name: ZAP API Scan
-        uses: zaproxy/action-api-scan@v0.7.0
+        uses: zaproxy/action-api-scan@v0.9.0
         with:
           target: 'https://collector-shop.online/api/'
           rules_file_name: '.zap/rules.tsv'
           fail_action: false
           allow_issue_writing: false
+          artifact_name: zap-api-report
 
       - name: ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.12.0
+        uses: zaproxy/action-baseline@v0.14.0
         with:
           target: 'https://collector-shop.online/'
           rules_file_name: '.zap/rules.tsv'
           fail_action: false
           allow_issue_writing: false
+          artifact_name: zap-baseline-report
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4

@@ -13,6 +13,7 @@ import { logger } from '@core/logger/index.js';
 import { closeDatabase } from '@core/database/index.js';
 import { getRedisClient, closeRedisClient, cacheGet } from '@core/cache/index.js';
 import { initStorage } from '@core/storage/index.js';
+import { register, httpRequestDuration, httpRequestsTotal, httpActiveRequests } from '@core/metrics/index.js';
 
 // Module routes
 import { userRoutes } from '@modules/user/adapters/user.routes.js';
@@ -106,6 +107,21 @@ async function registerPlugins() {
 
 // Register routes
 async function registerRoutes() {
+  // Metrics — track request duration and count
+  fastify.addHook('onRequest', async (request) => {
+    httpActiveRequests.inc();
+    (request as Record<string, unknown>)._startTime = Date.now();
+  });
+
+  fastify.addHook('onResponse', async (request, reply) => {
+    httpActiveRequests.dec();
+    const duration = (Date.now() - ((request as Record<string, unknown>)._startTime as number)) / 1000;
+    const route = request.routerPath ?? request.url;
+    const labels = { method: request.method, route, status_code: String(reply.statusCode) };
+    httpRequestDuration.observe(labels, duration);
+    httpRequestsTotal.inc(labels);
+  });
+
   // JWT blacklist check — runs on every request with a Bearer token
   fastify.addHook('onRequest', async (request, reply) => {
     const auth = request.headers.authorization;
@@ -148,6 +164,12 @@ async function registerRoutes() {
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
     };
+  });
+
+  // Prometheus metrics endpoint (internal — not exposed via Ingress)
+  fastify.get('/metrics', async (_request, reply) => {
+    reply.header('Content-Type', register.contentType);
+    return reply.send(await register.metrics());
   });
 
   // API routes
