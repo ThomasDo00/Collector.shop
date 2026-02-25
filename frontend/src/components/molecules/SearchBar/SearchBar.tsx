@@ -162,6 +162,7 @@ function SearchBar({
       {showSuggestions && filteredSuggestions.length > 0 && (
         <ul
           id="search-suggestions"
+          role="listbox"
           className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
         >
           {filteredSuggestions.slice(0, 5).map((suggestion, index) => (

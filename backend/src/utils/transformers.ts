@@ -29,12 +29,12 @@ export function transformSeller(data: SellerData) {
  * Parse price to float (handles both string and number)
  */
 export function parsePrice(price: string | number): number {
-  return typeof price === 'string' ? parseFloat(price) : price;
+  return typeof price === 'string' ? Number.parseFloat(price) : price;
 }
 
 /**
  * Round monetary value to 2 decimal places
  */
 export function roundMoney(value: number): number {
-  return parseFloat(value.toFixed(2));
+  return Number.parseFloat(value.toFixed(2));
 }
