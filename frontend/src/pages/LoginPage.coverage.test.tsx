@@ -30,7 +30,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
 const createStore = (preloadedAuth?: Partial<ReturnType<typeof authReducer>>) =>
   configureStore({
     reducer: { auth: authReducer },
-    preloadedState: preloadedAuth ? { auth: preloadedAuth as any } : undefined,
+    preloadedState: preloadedAuth ? { auth: preloadedAuth as ReturnType<typeof authReducer> } : undefined,
   });
 
 const renderPage = (store = createStore()) =>

@@ -63,7 +63,7 @@ vi.mock('@/core/logger', () => ({
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-const createStore = (user?: any) =>
+const createStore = (user?: Record<string, unknown>) =>
   configureStore({
     reducer: { auth: authReducer },
     preloadedState: user
