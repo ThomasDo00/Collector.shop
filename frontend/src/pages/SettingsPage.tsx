@@ -143,7 +143,7 @@ function SettingsPage() {
               <div className="flex items-center gap-2 mb-4">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-medium">
                   <span className="w-2 h-2 rounded-full bg-green-500" />
-                  Active
+                  <span>Active</span>
                 </span>
                 <Typography color="muted" className="text-sm">
                   Votre compte est protege par une application d'authentification.
@@ -154,7 +154,7 @@ function SettingsPage() {
               <div className="flex items-center gap-2 mb-4">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-sm font-medium">
                   <span className="w-2 h-2 rounded-full bg-gray-400" />
-                  Desactive
+                  <span>Desactive</span>
                 </span>
                 <Typography color="muted" className="text-sm">
                   Activez le 2FA pour mieux proteger votre compte.

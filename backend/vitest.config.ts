@@ -16,6 +16,11 @@ export default defineConfig({
         '**/*.d.ts',
         '**/*.config.*',
         'dist/',
+        // Not unit-testable: entry point, migrations, seeds, lint config
+        'src/server.ts',
+        'src/core/database/migrations/**',
+        'src/core/database/seeds/**',
+        '.eslintrc.cjs',
       ],
     },
     testTimeout: 30000, // For testcontainers

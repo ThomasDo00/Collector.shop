@@ -577,7 +577,7 @@ export async function userRoutes(fastify: FastifyInstance) {
         ...user,
         salesCount,
         reviewCount,
-        rating: rating ? parseFloat(rating.toFixed(1)) : 0,
+        rating: rating ? Number.parseFloat(rating.toFixed(1)) : 0,
         responseRate: 98, // Mock for now
         responseTime: '< 1 heure', // Mock for now
         isVerified: user.status === 'active',
@@ -631,7 +631,7 @@ export async function userRoutes(fastify: FastifyInstance) {
       const formattedProducts = products.map((p: Record<string, unknown>) => ({
         id: p.id,
         title: p.title,
-        price: parseFloat(p.price as string),
+        price: Number.parseFloat(p.price as string),
         imageUrl: p.imageUrl,
         category: p.category,
         condition: p.condition,

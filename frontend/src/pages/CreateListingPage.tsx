@@ -61,9 +61,9 @@ export function CreateListingPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Image */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="block text-sm font-medium text-gray-700 mb-2">
             Photo de l'article <span className="text-red-500">*</span>
-          </label>
+          </div>
           <ImageUpload
             onUpload={(url) => { setImageUrl(url); setImageError(''); }}
             currentImageUrl={imageUrl || undefined}
@@ -73,11 +73,12 @@ export function CreateListingPage() {
 
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
             Titre <span className="text-red-500">*</span>
           </label>
           <input
             {...register('title', { required: 'Titre requis', minLength: { value: 3, message: 'Minimum 3 caractères' } })}
+            id="title"
             type="text"
             placeholder="ex: Jordan 1 Retro High OG..."
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -87,11 +88,12 @@ export function CreateListingPage() {
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
             Description
           </label>
           <textarea
             {...register('description')}
+            id="description"
             rows={4}
             placeholder="Décris ton article : état, taille, historique..."
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -102,11 +104,12 @@ export function CreateListingPage() {
         {/* Category + Condition */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-1">
               Catégorie <span className="text-red-500">*</span>
             </label>
             <select
               {...register('categoryId', { required: 'Catégorie requise' })}
+              id="categoryId"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">Choisir...</option>
@@ -118,11 +121,12 @@ export function CreateListingPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="condition" className="block text-sm font-medium text-gray-700 mb-1">
               État <span className="text-red-500">*</span>
             </label>
             <select
               {...register('condition', { required: 'État requis' })}
+              id="condition"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">Choisir...</option>
@@ -136,12 +140,13 @@ export function CreateListingPage() {
 
         {/* Price */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
             Prix (€) <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <input
               {...register('price', { required: 'Prix requis', min: { value: 0.01, message: 'Le prix doit être positif' }, valueAsNumber: true })}
+              id="price"
               type="number"
               min="0.01"
               step="0.01"
