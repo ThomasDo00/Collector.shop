@@ -105,17 +105,20 @@ async function registerPlugins() {
   });
 }
 
+const requestStartTimes = new WeakMap<object, number>();
+
 // Register routes
 async function registerRoutes() {
   // Metrics — track request duration and count
   fastify.addHook('onRequest', async (request) => {
     httpActiveRequests.inc();
-    (request as Record<string, unknown>)._startTime = Date.now();
+    requestStartTimes.set(request, Date.now());
   });
 
   fastify.addHook('onResponse', async (request, reply) => {
     httpActiveRequests.dec();
-    const duration = (Date.now() - ((request as Record<string, unknown>)._startTime as number)) / 1000;
+    const duration = (Date.now() - (requestStartTimes.get(request) ?? Date.now())) / 1000;
+    requestStartTimes.delete(request);
     const route = request.routerPath ?? request.url;
     const labels = { method: request.method, route, status_code: String(reply.statusCode) };
     httpRequestDuration.observe(labels, duration);
