@@ -206,7 +206,11 @@ async function start() {
   try {
     await registerPlugins();
     await registerRoutes();
-    await initStorage();
+    try {
+      await initStorage();
+    } catch (error) {
+      logger.warn({ error }, 'Storage initialization failed — file uploads will be unavailable');
+    }
 
     await fastify.listen({
       host: env.API_HOST,
