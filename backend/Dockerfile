@@ -6,14 +6,16 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
-COPY tsconfig.json ./
+COPY package*.json package-lock.json ./
+COPY backend/ ./backend/
+
+WORKDIR /app/backend
 
 # Install ALL dependencies (including devDependencies for TypeScript build)
 RUN npm ci
 
 # Copy source code
-COPY src ./src
+COPY backend/src ./src
 
 # Build TypeScript
 RUN npm run build
@@ -27,17 +29,17 @@ WORKDIR /app
 RUN apk add --no-cache dumb-init
 
 # Copy package files
-COPY package*.json ./
-COPY tsconfig.json ./
+COPY package*.json package-lock.json ./
+COPY backend/tsconfig.json ./
 
 # Copy node_modules from builder (avoids running install scripts in production)
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/backend/node_modules ./node_modules
 
 # Copy source code (needed for migrations/seeds with tsx)
-COPY --from=builder /app/src ./src
+COPY --from=builder /app/backend/src ./src
 
 # Copy built files
-COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/backend/dist ./dist
 
 # Use non-root user for security
 RUN chown -R node:node /app
