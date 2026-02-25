@@ -1,7 +1,7 @@
 import { Knex } from 'knex';
 import bcrypt from 'bcrypt';
 import { logger } from '../../../core/logger/index.js';
-import { randomUUID } from 'crypto';
+import { randomUUID, randomInt } from 'crypto';
 
 /**
  * Production seed - Adds more realistic data for demo/production
@@ -263,7 +263,7 @@ export async function seed(knex: Knex): Promise<void> {
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
       const seller = sellers[i % sellers.length];
-      const daysAgo = Math.floor(Math.random() * 90);
+      const daysAgo = randomInt(0, 90);
 
       products.push({
         id: uuid(),
@@ -278,7 +278,7 @@ export async function seed(knex: Knex): Promise<void> {
         category_id: category.id,
         category_name: category.name,
         condition: item.condition,
-        status: Math.random() > 0.1 ? 'active' : (Math.random() > 0.5 ? 'sold' : 'reserved'),
+        status: randomInt(0, 10) > 0 ? 'active' : (randomInt(0, 2) > 0 ? 'sold' : 'reserved'),
         seller_id: seller.id,
         created_at: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
         updated_at: new Date(),
@@ -315,15 +315,15 @@ export async function seed(knex: Knex): Promise<void> {
   }> = [];
 
   for (const product of soldProducts) {
-    const buyer = buyers[Math.floor(Math.random() * buyers.length)];
+    const buyer = buyers[randomInt(0, buyers.length)];
     reviews.push({
       id: uuid(),
       product_id: product.id,
       buyer_id: buyer.id,
       seller_id: product.seller_id,
-      rating: Math.floor(Math.random() * 2) + 4, // 4 or 5 stars
-      comment: reviewTexts[Math.floor(Math.random() * reviewTexts.length)],
-      created_at: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000),
+      rating: randomInt(4, 6), // 4 or 5 stars
+      comment: reviewTexts[randomInt(0, reviewTexts.length)],
+      created_at: new Date(Date.now() - randomInt(0, 30) * 24 * 60 * 60 * 1000),
     });
   }
 

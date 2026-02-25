@@ -126,7 +126,7 @@ jobs:
         image: postgres:16-alpine
         env:
           POSTGRES_USER: collector
-          POSTGRES_PASSWORD: collector_test_password
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_TEST_PASSWORD }}
           POSTGRES_DB: collector_test
         ports:
           - 5432:5432
@@ -147,7 +147,7 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URL: postgresql://collector:collector_test_password@localhost:5432/collector_test
+      DATABASE_URL: postgresql://collector:${{ secrets.POSTGRES_TEST_PASSWORD }}@localhost:5432/collector_test
       REDIS_URL: redis://localhost:6379
       JWT_SECRET: test-jwt-secret-for-ci-minimum-32-chars
       NODE_ENV: test
