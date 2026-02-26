@@ -5,28 +5,30 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy monorepo package files (package-lock.json lives at root)
+COPY package.json package-lock.json ./
+COPY frontend/package.json ./frontend/
 
-# Install ALL dependencies (including devDependencies for Vite build)
+# Install frontend workspace dependencies
 # --ignore-scripts prevents postinstall scripts from running (supply-chain safety)
-RUN npm ci --ignore-scripts
+RUN npm ci --workspace=frontend --ignore-scripts
 
-# Copy source code
-COPY src ./src
-COPY index.html ./
-COPY tsconfig.json ./
-COPY tsconfig.node.json ./
-COPY vite.config.ts ./
-COPY .eslintrc.cjs ./
-COPY tailwind.config.js ./
-COPY postcss.config.js ./
+# Copy frontend source code
+COPY frontend/src ./frontend/src
+COPY frontend/index.html ./frontend/index.html
+COPY frontend/tsconfig.json ./frontend/tsconfig.json
+COPY frontend/tsconfig.node.json ./frontend/tsconfig.node.json
+COPY frontend/vite.config.ts ./frontend/vite.config.ts
+COPY frontend/.eslintrc.cjs ./frontend/.eslintrc.cjs
+COPY frontend/tailwind.config.js ./frontend/tailwind.config.js
+COPY frontend/postcss.config.js ./frontend/postcss.config.js
 
 # Build argument for API URL
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
 
 # Build the app
+WORKDIR /app/frontend
 RUN npm run build
 
 # Production stage - serve with nginx
@@ -41,10 +43,10 @@ RUN chown -R nginx:nginx /usr/share/nginx/html \
     && chown nginx:nginx /var/run/nginx.pid
 
 # Copy custom nginx config
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY frontend/nginx.conf /etc/nginx/nginx.conf
 
 # Copy built files from builder
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/frontend/dist /usr/share/nginx/html
 
 # Use non-root user for security
 USER nginx
