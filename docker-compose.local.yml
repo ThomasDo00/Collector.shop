@@ -36,8 +36,8 @@ services:
   frontend:
     image: ${FRONTEND_IMAGE:-ghcr.io/thomasdo00/collector-frontend:latest}
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./frontend/Dockerfile
       args:
         VITE_API_URL: http://${VPS_IP:-localhost}/api
     container_name: collector-frontend
@@ -51,8 +51,8 @@ services:
   backend:
     image: ${BACKEND_IMAGE:-ghcr.io/thomasdo00/collector-backend:latest}
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./backend/Dockerfile
     container_name: collector-backend
     restart: unless-stopped
     environment:

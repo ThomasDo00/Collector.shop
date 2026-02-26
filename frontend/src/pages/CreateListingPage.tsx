@@ -24,7 +24,7 @@ interface FormData {
 export function CreateListingPage() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [imageUrl, setImageUrl] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageError, setImageError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -36,7 +36,7 @@ export function CreateListingPage() {
   }, []);
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
-    if (!imageUrl) {
+    if (!imageFile) {
       setImageError('Une image est requise');
       return;
     }
@@ -45,6 +45,7 @@ export function CreateListingPage() {
     setSubmitError('');
 
     try {
+      const imageUrl = await catalogService.uploadImage(imageFile);
       await catalogService.createProduct({ ...data, imageUrl });
       navigate('/catalog');
     } catch {
@@ -65,8 +66,7 @@ export function CreateListingPage() {
             Photo de l'article <span className="text-red-500">*</span>
           </div>
           <ImageUpload
-            onUpload={(url) => { setImageUrl(url); setImageError(''); }}
-            currentImageUrl={imageUrl || undefined}
+            onUpload={(file) => { setImageFile(file); setImageError(''); }}
           />
           {imageError && <p className="mt-1 text-sm text-red-600">{imageError}</p>}
         </div>

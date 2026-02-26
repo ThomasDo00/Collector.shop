@@ -1,20 +1,18 @@
 import { useState, useRef, useCallback } from 'react';
 import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { catalogService } from '@services/catalog.service';
 
 interface ImageUploadProps {
-  onUpload: (imageUrl: string) => void;
+  onUpload: (file: File | null) => void;
   currentImageUrl?: string;
 }
 
 export function ImageUpload({ onUpload, currentImageUrl }: ImageUploadProps) {
   const [preview, setPreview] = useState<string | null>(currentImageUrl ?? null);
-  const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = useCallback(async (file: File) => {
+  const handleFile = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) {
       setError('Le fichier doit être une image (JPG, PNG, WebP...)');
       return;
@@ -26,18 +24,8 @@ export function ImageUpload({ onUpload, currentImageUrl }: ImageUploadProps) {
 
     setError(null);
     setPreview(URL.createObjectURL(file));
-    setIsUploading(true);
-
-    try {
-      const imageUrl = await catalogService.uploadImage(file);
-      onUpload(imageUrl);
-    } catch {
-      setError('Erreur lors de l\'upload. Réessaie.');
-      setPreview(currentImageUrl ?? null);
-    } finally {
-      setIsUploading(false);
-    }
-  }, [onUpload, currentImageUrl]);
+    onUpload(file);
+  }, [onUpload]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -53,7 +41,7 @@ export function ImageUpload({ onUpload, currentImageUrl }: ImageUploadProps) {
 
   const handleRemove = () => {
     setPreview(null);
-    onUpload('');
+    onUpload(null);
     if (inputRef.current) inputRef.current.value = '';
   };
 
@@ -62,20 +50,13 @@ export function ImageUpload({ onUpload, currentImageUrl }: ImageUploadProps) {
       {preview ? (
         <div className="relative w-full aspect-square max-w-sm rounded-lg overflow-hidden border border-gray-200">
           <img src={preview} alt="Aperçu" className="w-full h-full object-cover" />
-          {isUploading && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-              <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin" />
-            </div>
-          )}
-          {!isUploading && (
-            <button
-              type="button"
-              onClick={handleRemove}
-              className="absolute top-2 right-2 p-1 bg-white rounded-full shadow hover:bg-gray-100"
-            >
-              <XMarkIcon className="w-4 h-4 text-gray-600" />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleRemove}
+            className="absolute top-2 right-2 p-1 bg-white rounded-full shadow hover:bg-gray-100"
+          >
+            <XMarkIcon className="w-4 h-4 text-gray-600" />
+          </button>
         </div>
       ) : (
         <button

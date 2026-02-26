@@ -1,35 +1,41 @@
 # Backend Dockerfile for Collector.shop
 
-# Build stage
+# ── Build stage ──────────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json package-lock.json ./
+# Copy workspace manifests so npm can resolve all workspaces from root
+COPY package.json package-lock.json ./
+COPY backend/package.json  ./backend/package.json
+COPY frontend/package.json ./frontend/package.json
+
+# Install all workspace dependencies from the monorepo root
+# (packages are hoisted to /app/node_modules; non-hoistable ones go to
+#  /app/backend/node_modules — we need both in production)
+RUN npm ci
+
+# Copy backend source and build
 COPY backend/ ./backend/
 
 WORKDIR /app/backend
 
-# Install ALL dependencies (including devDependencies for TypeScript build)
-RUN npm ci
-
-# Build TypeScript
 RUN npm run build
 
-# Production stage
+# ── Production stage ─────────────────────────────────────────────────────────
 FROM node:20-alpine
-
-WORKDIR /app
 
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
 
-# Copy package files
-COPY package*.json package-lock.json ./
-COPY backend/tsconfig.json ./
+WORKDIR /app
 
-# Copy node_modules from builder (avoids running install scripts in production)
+# Copy hoisted packages (the majority)
+COPY --from=builder /app/node_modules ./node_modules
+
+WORKDIR /app/backend
+
+# Copy workspace-specific packages (non-hoisted backend deps)
 COPY --from=builder /app/backend/node_modules ./node_modules
 
 # Copy source code (needed for migrations/seeds with tsx)
