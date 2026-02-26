@@ -202,8 +202,7 @@ jobs:
       - name: Run migrations
         run: |
           kubectl exec -n collector-prod deployment/backend -- \
-            npx tsx node_modules/knex/bin/cli.js migrate:latest \
-            --knexfile src/core/database/knexfile.ts
+            npm run migrate
 
   # ===========================================
   # Rollback on Failure
