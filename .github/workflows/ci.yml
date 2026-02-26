@@ -243,7 +243,8 @@ jobs:
       - name: Build Backend image
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
+          context: .
+          file: ./backend/Dockerfile
           push: false
           tags: collector-backend:test
           cache-from: type=gha

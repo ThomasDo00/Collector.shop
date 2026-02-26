@@ -14,9 +14,6 @@ WORKDIR /app/backend
 # Install ALL dependencies (including devDependencies for TypeScript build)
 RUN npm ci
 
-# Copy source code
-COPY backend/src ./src
-
 # Build TypeScript
 RUN npm run build
 
