@@ -38,6 +38,10 @@ WORKDIR /app/backend
 # Copy workspace-specific packages (non-hoisted backend deps)
 COPY --from=builder /app/backend/node_modules ./node_modules
 
+# Copy package.json files (needed for npm run scripts + workspace resolution)
+COPY --from=builder /app/package.json /app/package.json
+COPY --from=builder /app/backend/package.json ./package.json
+
 # Copy source code (needed for migrations/seeds with tsx)
 COPY --from=builder /app/backend/src ./src
 
