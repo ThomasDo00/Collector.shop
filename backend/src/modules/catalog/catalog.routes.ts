@@ -4,6 +4,7 @@ import { transformSeller, parsePrice } from '../../utils/transformers.js';
 import { ErrorResponses } from '../../utils/errors.js';
 import { uploadFile } from '@core/storage/index.js';
 import { cacheGet, cacheSet, cacheDel, cacheDelPattern } from '@core/cache/index.js';
+import { activeProducts } from '@core/metrics/index.js';
 
 const CACHE_TTL = {
   CATEGORIES: 3600,  // 1 hour — rarely changes
@@ -260,7 +261,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
     },
   }, async (request, reply) => {
     await request.jwtVerify();
-    const sellerId = (request.user as { id: string }).id;
+    const sellerId = (request.user as { userId: string }).userId;
 
     const { title, description, price, condition, categoryId, imageUrl } = request.body as {
       title: string;
@@ -287,6 +288,8 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       seller_id: sellerId,
       status: 'active',
     }).returning('*');
+
+    activeProducts.inc();
 
     // Invalidate product listing cache (all filter combinations)
     await cacheDelPattern('catalog:products:*');
@@ -364,5 +367,47 @@ export async function catalogRoutes(fastify: FastifyInstance) {
     await cacheSet(cacheKey, JSON.stringify(productData), CACHE_TTL.PRODUCT);
 
     return { success: true, data: productData };
+  });
+
+  // DELETE /api/catalog/products/:id - Delete a product (authenticated, owner only)
+  fastify.delete('/products/:id', {
+    schema: {
+      description: 'Delete a product listing (owner only)',
+      tags: ['Catalog'],
+      security: [{ bearerAuth: [] }],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+        },
+      },
+    },
+  }, async (request, reply) => {
+    await request.jwtVerify();
+    const { userId } = request.user as { userId: string };
+    const { id } = request.params as { id: string };
+
+    const product = await db('products').where({ id }).first();
+
+    if (!product) {
+      return ErrorResponses.productNotFound(reply);
+    }
+
+    if (product.seller_id !== userId) {
+      return reply.status(403).send({
+        success: false,
+        error: 'FORBIDDEN',
+        message: 'You are not allowed to delete this product',
+      });
+    }
+
+    await db('products').where({ id }).delete();
+
+    activeProducts.dec();
+
+    await cacheDelPattern('catalog:products:*');
+    await cacheDel(`catalog:product:${id}`);
+
+    return reply.status(204).send();
   });
 }

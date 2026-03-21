@@ -32,7 +32,11 @@ export const API_ENDPOINTS = {
     SETTINGS: '/users/settings',
     LISTINGS: (userId: string) => `/users/${userId}/listings`,
     REVIEWS: (userId: string) => `/users/${userId}/reviews`,
-    FAVORITES: '/users/favorites',
+    FAVORITES: {
+      LIST: '/favorites',
+      ADD: '/favorites',
+      REMOVE: (productId: string) => `/favorites/${productId}`,
+    },
   },
 
   // Catalog

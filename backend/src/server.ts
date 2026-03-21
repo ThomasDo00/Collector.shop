@@ -13,12 +13,13 @@ import { logger } from '@core/logger/index.js';
 import { closeDatabase } from '@core/database/index.js';
 import { getRedisClient, closeRedisClient, cacheGet } from '@core/cache/index.js';
 import { initStorage } from '@core/storage/index.js';
-import { register, httpRequestDuration, httpRequestsTotal, httpActiveRequests } from '@core/metrics/index.js';
+import { register, httpRequestDuration, httpRequestsTotal, httpActiveRequests, registeredUsers, activeProducts } from '@core/metrics/index.js';
 
 // Module routes
 import { userRoutes } from '@modules/user/adapters/user.routes.js';
 import { catalogRoutes } from '@modules/catalog/catalog.routes.js';
 import { cartRoutes } from '@modules/cart/cart.routes.js';
+import { favoritesRoutes } from '@modules/favorites/favorites.routes.js';
 
 const fastify = Fastify({
   logger: {
@@ -179,6 +180,7 @@ async function registerRoutes() {
   await fastify.register(userRoutes, { prefix: '/api/users' });
   await fastify.register(catalogRoutes, { prefix: '/api/catalog' });
   await fastify.register(cartRoutes, { prefix: '/api/cart' });
+  await fastify.register(favoritesRoutes, { prefix: '/api/favorites' });
 
   // Future modules will be registered here:
   // await fastify.register(paymentRoutes, { prefix: '/api/payments' });
@@ -201,11 +203,26 @@ async function gracefulShutdown(signal: string) {
   }
 }
 
+async function initMetrics() {
+  try {
+    const { getDatabase } = await import('@core/database/index.js');
+    const db = getDatabase();
+    const [{ count: userCount }] = await db('users').count('id as count');
+    const [{ count: productCount }] = await db('products').where({ status: 'active' }).count('id as count');
+    registeredUsers.set(Number(userCount));
+    activeProducts.set(Number(productCount));
+    logger.info(`Metrics initialized — users: ${userCount}, active products: ${productCount}`);
+  } catch (error) {
+    logger.warn({ error }, 'Failed to initialize business metrics');
+  }
+}
+
 // Start server
 async function start() {
   try {
     await registerPlugins();
     await registerRoutes();
+    await initMetrics();
     try {
       await initStorage();
     } catch (error) {

@@ -10,6 +10,10 @@ import Rating from '@/components/molecules/Rating';
 import PriceDisplay from '@/components/molecules/PriceDisplay';
 import ProductGrid from '@/components/organisms/ProductGrid';
 import { catalogService } from '@/services/catalog.service';
+import { favoritesService } from '@/services/favorites.service';
+import { cartService } from '@/services/cart.service';
+import { useAppSelector } from '@/store';
+import { selectCurrentUser, selectIsAuthenticated } from '@/features/auth/authSlice';
 import { logger } from '@/core/logger';
 import type { ProductPreview } from '@/types';
 
@@ -33,13 +37,18 @@ const CONDITION_LABELS: Record<string, string> = {
  */
 function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const currentUser = useAppSelector(selectCurrentUser);
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+  const [cartLoading, setCartLoading] = useState(false);
+  const [cartAdded, setCartAdded] = useState(false);
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [similarProducts, setSimilarProducts] = useState<ProductPreview[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load product data
+  // Load product data and favorites status
   useEffect(() => {
     const loadProduct = async () => {
       if (!id) return;
@@ -63,6 +72,16 @@ function ProductDetailPage() {
           const allProducts = await catalogService.getProducts({ category: productData.category });
           setSimilarProducts(allProducts.filter(p => p.id !== id).slice(0, 4));
         }
+
+        // Check if product is favorited (only if authenticated)
+        if (isAuthenticated) {
+          try {
+            const favorites = await favoritesService.getFavorites();
+            setIsFavorite(favorites.some(f => f.id === id));
+          } catch {
+            // Non-critical: favorites check failed
+          }
+        }
       } catch (error) {
         logger.error('Failed to load product', error);
       } finally {
@@ -71,7 +90,39 @@ function ProductDetailPage() {
     };
 
     loadProduct();
-  }, [id]);
+  }, [id, isAuthenticated]);
+
+  const handleFavoriteToggle = async () => {
+    if (!isAuthenticated || !id) return;
+    setFavoriteLoading(true);
+    try {
+      if (isFavorite) {
+        await favoritesService.removeFavorite(id);
+        setIsFavorite(false);
+      } else {
+        await favoritesService.addFavorite(id);
+        setIsFavorite(true);
+      }
+    } catch (error) {
+      logger.error('Failed to toggle favorite', error);
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
+
+  const handleAddToCart = async () => {
+    if (!isAuthenticated || !currentUser || !id) return;
+    setCartLoading(true);
+    try {
+      await cartService.addItem(currentUser.id, id);
+      setCartAdded(true);
+      setTimeout(() => setCartAdded(false), 2000);
+    } catch (error) {
+      logger.error('Failed to add to cart', error);
+    } finally {
+      setCartLoading(false);
+    }
+  };
 
   if (loading || !product) {
     return (
@@ -90,6 +141,8 @@ function ProductDetailPage() {
     { label: product.category || 'Produits', href: `/catalog/${product.category?.toLowerCase()}` },
     { label: product.title },
   ];
+
+  const isOwnProduct = product.seller.id === currentUser?.id;
 
   return (
     <div className="min-h-screen bg-white" data-product-id={id}>
@@ -166,19 +219,32 @@ function ProductDetailPage() {
             </div>
 
             {/* Actions */}
-            <div className="flex gap-4 mb-8">
-              <Button variant="primary" size="lg" className="flex-1">
-                Acheter maintenant
-              </Button>
-              <Button
-                variant={isFavorite ? 'secondary' : 'outline'}
-                size="lg"
-                onClick={() => setIsFavorite(!isFavorite)}
-                aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-              >
-                <Icon name={isFavorite ? 'heart-solid' : 'heart'} size="md" />
-              </Button>
-            </div>
+            {!isOwnProduct && (
+              <div className="flex gap-4 mb-8">
+                <Button
+                  variant={cartAdded ? 'secondary' : 'primary'}
+                  size="lg"
+                  className="flex-1"
+                  onClick={handleAddToCart}
+                  disabled={cartLoading || !isAuthenticated}
+                >
+                  {(() => {
+                    if (cartLoading) return 'Ajout...';
+                    if (cartAdded) return 'Ajouté !';
+                    return 'Ajouter au panier';
+                  })()}
+                </Button>
+                <Button
+                  variant={isFavorite ? 'secondary' : 'outline'}
+                  size="lg"
+                  onClick={handleFavoriteToggle}
+                  disabled={favoriteLoading || !isAuthenticated}
+                  aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                >
+                  <Icon name={isFavorite ? 'heart-solid' : 'heart'} size="md" />
+                </Button>
+              </div>
+            )}
 
             {/* Seller Card */}
             <div className="bg-gray-50 rounded-lg p-6 mb-8">

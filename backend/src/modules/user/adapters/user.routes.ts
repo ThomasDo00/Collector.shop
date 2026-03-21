@@ -16,6 +16,7 @@ import {
 import { createUserDTOSchema } from '../domain/entities/User.js';
 import { env } from '@core/config/env.js';
 import { cacheSet } from '@core/cache/index.js';
+import { registeredUsers } from '@core/metrics/index.js';
 
 // Request body schemas
 type RegisterBody = z.infer<typeof createUserDTOSchema>;
@@ -71,6 +72,8 @@ export async function userRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest<{ Body: RegisterBody }>, reply: FastifyReply) => {
       try {
         const user = await registerUser.execute(request.body);
+
+        registeredUsers.inc();
 
         return reply.status(201).send({
           success: true,

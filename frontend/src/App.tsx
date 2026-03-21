@@ -18,6 +18,9 @@ const ProfilePage = lazy(() => import('@/pages/ProfilePage'));
 const CheckoutPage = lazy(() => import('@/pages/CheckoutPage'));
 const CreateListingPage = lazy(() => import('@/pages/CreateListingPage').then(m => ({ default: m.CreateListingPage })));
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
+const FavoritesPage = lazy(() => import('@/pages/FavoritesPage'));
+const CartPage = lazy(() => import('@/pages/CartPage'));
+const MyListingsPage = lazy(() => import('@/pages/MyListingsPage'));
 
 // Page loader component
 function PageLoader() {
@@ -53,6 +56,7 @@ function App() {
           <Route path="/search" element={<CatalogPage />} />
           <Route path="/product/:id" element={<ProductDetailPage />} />
           <Route path="/profile/:username" element={<ProfilePage />} />
+          <Route path="/cart" element={<CartPage />} />
         </Route>
 
         {/* Auth routes with AuthLayout */}
@@ -67,8 +71,8 @@ function App() {
           <Route element={<MainLayout />}>
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/settings" element={<SettingsPage />} />
-            {/* <Route path="/favorites" element={<FavoritesPage />} /> */}
-            {/* <Route path="/my-listings" element={<MyListingsPage />} /> */}
+            <Route path="/favorites" element={<FavoritesPage />} />
+            <Route path="/my-listings" element={<MyListingsPage />} />
             <Route path="/sell" element={<CreateListingPage />} />
           </Route>
 

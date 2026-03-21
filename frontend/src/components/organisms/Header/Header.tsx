@@ -9,12 +9,6 @@ import SearchBar from '@/components/molecules/SearchBar';
 import { useAppSelector, useAppDispatch } from '@/store';
 import { selectIsAuthenticated, selectCurrentUser, logout } from '@/features/auth/authSlice';
 
-const NAV_LINKS = [
-  { label: 'Catalogue', href: '/catalog' },
-  { label: 'Categories', href: '/catalog', hasDropdown: true },
-  { label: 'Vendre', href: '/sell' },
-];
-
 /**
  * Main header component with navigation
  */
@@ -31,16 +25,12 @@ function Header() {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const user = useAppSelector(selectCurrentUser);
 
-  // Handle scroll effect
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close menus on route change
   useEffect(() => {
     setIsMenuOpen(false);
     setIsUserMenuOpen(false);
@@ -55,56 +45,85 @@ function Header() {
     navigate('/');
   };
 
+  const isActive = (href: string) =>
+    location.pathname === href || location.pathname.startsWith(href + '/');
+
   return (
     <header
       className={clsx(
         'sticky top-0 z-50 w-full transition-all duration-300',
         isScrolled
           ? 'bg-white/95 backdrop-blur-md shadow-sm'
-          : 'bg-white'
+          : 'bg-white border-b border-gray-100'
       )}
     >
       <div className="container-page">
-        <div className="flex items-center h-16 md:h-20">
-          {/* Logo - Left */}
+        <div className="flex items-center h-16 md:h-20 gap-6">
+
+          {/* Logo */}
           <div className="flex-shrink-0">
             <Logo size="md" />
           </div>
 
-          {/* Spacer */}
-          <div className="flex-1"></div>
+          {/* ── Desktop Navigation + Search (left block) ── */}
+          <div className="hidden lg:flex items-center gap-1 flex-1 min-w-0">
 
-          {/* Desktop Navigation - Center */}
-          <nav className="hidden lg:flex items-center gap-8" aria-label="Navigation principale">
-            {NAV_LINKS.map((link) => (
+            {/* Nav links */}
+            <nav className="flex items-center gap-1 mr-4 flex-shrink-0" aria-label="Navigation principale">
               <Link
-                key={link.label}
-                to={link.href}
+                to="/catalog"
                 className={clsx(
-                  'text-sm font-medium transition-colors duration-200',
-                  'hover:text-primary-800',
-                  location.pathname === link.href
-                    ? 'text-primary-800'
-                    : 'text-accent'
+                  'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+                  isActive('/catalog') && location.pathname !== '/'
+                    ? 'bg-primary-50 text-primary-800'
+                    : 'text-gray-600 hover:text-primary-800 hover:bg-gray-50'
                 )}
               >
-                <span className="flex items-center gap-1">
-                  {link.label}
-                  {link.hasDropdown && (
-                    <Icon name="chevron-down" size="xs" />
-                  )}
-                </span>
+                Catalogue
               </Link>
-            ))}
-          </nav>
 
-          {/* Spacer */}
-          <div className="flex-1"></div>
+              <Link
+                to="/catalog"
+                className={clsx(
+                  'px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1',
+                  'text-gray-600 hover:text-primary-800 hover:bg-gray-50'
+                )}
+              >
+                Catégories
+                <Icon name="chevron-down" size="xs" />
+              </Link>
 
-          {/* Search Bar & Actions - Right */}
-          <div className="flex items-center gap-2 md:gap-4">
-            {/* Search Bar - Desktop */}
-            <div className="hidden md:block max-w-sm">
+              <Link
+                to={isAuthenticated ? '/sell' : '/login'}
+                className={clsx(
+                  'px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1',
+                  isActive('/sell')
+                    ? 'bg-primary-50 text-primary-800'
+                    : 'text-gray-600 hover:text-primary-800 hover:bg-gray-50'
+                )}
+              >
+                <Icon name="plus" size="xs" />
+                Vendre
+              </Link>
+
+              {isAuthenticated && (
+                <Link
+                  to="/my-listings"
+                  className={clsx(
+                    'px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1',
+                    isActive('/my-listings')
+                      ? 'bg-primary-50 text-primary-800'
+                      : 'text-gray-600 hover:text-primary-800 hover:bg-gray-50'
+                  )}
+                >
+                  <Icon name="tag" size="xs" />
+                  Mes annonces
+                </Link>
+              )}
+            </nav>
+
+            {/* Search bar — takes remaining space */}
+            <div className="flex-1 max-w-md">
               <SearchBar
                 value={searchQuery}
                 onChange={setSearchQuery}
@@ -113,137 +132,153 @@ function Header() {
                 fullWidth
               />
             </div>
+          </div>
 
-            {/* Search Icon - Mobile */}
+          {/* Spacer mobile */}
+          <div className="flex-1 lg:hidden" />
+
+          {/* ── Right Actions ── */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+
+            {/* Search icon — mobile only */}
             <button
-              className="md:hidden p-2 text-accent hover:text-primary-800 transition-colors"
+              className="lg:hidden p-2 text-gray-500 hover:text-primary-800 transition-colors rounded-full hover:bg-gray-100"
               aria-label="Rechercher"
             >
               <Icon name="search" size="md" />
             </button>
 
-            {/* Favorites */}
-            {isAuthenticated && (
-              <Link
-                to="/favorites"
-                className="p-2 text-accent hover:text-primary-800 transition-colors"
-                aria-label="Favoris"
-              >
-                <Icon name="heart" size="md" />
-              </Link>
-            )}
-
-            {/* Cart */}
-            <Link
-              to="/checkout"
-              className="relative p-2 text-accent hover:text-primary-800 transition-colors"
-              aria-label="Panier"
-            >
-              <Icon name="cart" size="md" />
-              {/* Cart count badge - will be connected to Redux later */}
-              {/* <span className="absolute -top-1 -right-1 bg-primary-800 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                2
-              </span> */}
-            </Link>
-
-            {/* User Menu / Auth Buttons */}
             {isAuthenticated ? (
-              <div className="relative">
-                <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition-colors"
-                  aria-expanded={isUserMenuOpen}
-                  aria-haspopup="true"
+              <>
+                {/* Favorites */}
+                <Link
+                  to="/favorites"
+                  className={clsx(
+                    'p-2 transition-colors rounded-full hover:bg-gray-100',
+                    isActive('/favorites') ? 'text-primary-800' : 'text-gray-500 hover:text-primary-800'
+                  )}
+                  aria-label="Mes favoris"
                 >
-                  <Avatar
-                    src={user?.avatarUrl}
-                    alt={user?.username || 'User'}
-                    fallback={user?.username}
-                    size="sm"
-                  />
-                  <Icon name="chevron-down" size="xs" className="hidden md:block text-gray-500" />
-                </button>
+                  <Icon name="heart" size="md" />
+                </Link>
 
-                {/* User Dropdown */}
-                {isUserMenuOpen && (
-                  <>
-                    <button
-                      className="fixed inset-0 z-40 bg-transparent cursor-default"
-                      onClick={() => setIsUserMenuOpen(false)}
-                      aria-label="Fermer le menu"
+                {/* Cart */}
+                <Link
+                  to="/cart"
+                  className={clsx(
+                    'p-2 transition-colors rounded-full hover:bg-gray-100',
+                    isActive('/cart') ? 'text-primary-800' : 'text-gray-500 hover:text-primary-800'
+                  )}
+                  aria-label="Mon panier"
+                >
+                  <Icon name="cart" size="md" />
+                </Link>
+
+                {/* Avatar + Dropdown */}
+                <div className="relative ml-1">
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-gray-100 transition-colors"
+                    aria-expanded={isUserMenuOpen}
+                    aria-haspopup="true"
+                    aria-label="Menu utilisateur"
+                  >
+                    <Avatar
+                      src={user?.avatarUrl}
+                      alt={user?.username || 'Utilisateur'}
+                      fallback={user?.username}
+                      size="sm"
                     />
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50 animate-fade-in">
-                      <div className="px-4 py-2 border-b border-gray-100">
-                        <p className="font-medium text-accent">{user?.username}</p>
-                        <p className="text-sm text-gray-500">{user?.email}</p>
-                      </div>
+                    <span className="hidden md:block text-sm font-medium text-gray-700 max-w-[100px] truncate">
+                      {user?.username}
+                    </span>
+                    <Icon name="chevron-down" size="xs" className="hidden md:block text-gray-400" />
+                  </button>
 
-                      <nav className="py-1">
-                        <Link
-                          to="/profile"
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-accent hover:bg-gray-50"
-                        >
-                          <Icon name="user" size="sm" />
-                          Mon profil
-                        </Link>
-                        <Link
-                          to="/my-listings"
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-accent hover:bg-gray-50"
-                        >
-                          <Icon name="tag" size="sm" />
-                          Mes annonces
-                        </Link>
-                        <Link
-                          to="/favorites"
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-accent hover:bg-gray-50"
-                        >
-                          <Icon name="heart" size="sm" />
-                          Favoris
-                        </Link>
-                        <Link
-                          to="/settings"
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-accent hover:bg-gray-50"
-                        >
-                          <Icon name="settings" size="sm" />
-                          Parametres
-                        </Link>
-                      </nav>
+                  {isUserMenuOpen && (
+                    <>
+                      <button
+                        className="fixed inset-0 z-40 bg-transparent cursor-default"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        aria-label="Fermer le menu"
+                      />
+                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 animate-fade-in">
+                        <div className="px-4 py-3 border-b border-gray-100">
+                          <p className="font-semibold text-gray-900 truncate">{user?.username}</p>
+                          <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                        </div>
 
-                      <div className="border-t border-gray-100 pt-1">
-                        <button
-                          onClick={handleLogout}
-                          className="flex items-center gap-3 w-full px-4 py-2 text-sm text-error-500 hover:bg-gray-50"
-                        >
-                          <Icon name="logout" size="sm" />
-                          Deconnexion
-                        </button>
+                        <nav className="py-1">
+                          <Link
+                            to="/profile"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-800 transition-colors"
+                          >
+                            <Icon name="user" size="sm" />
+                            Mon profil
+                          </Link>
+                          <Link
+                            to="/my-listings"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-800 transition-colors"
+                          >
+                            <Icon name="tag" size="sm" />
+                            Mes annonces
+                          </Link>
+                          <Link
+                            to="/favorites"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-800 transition-colors"
+                          >
+                            <Icon name="heart" size="sm" />
+                            Mes favoris
+                          </Link>
+                          <Link
+                            to="/settings"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-800 transition-colors"
+                          >
+                            <Icon name="settings" size="sm" />
+                            Paramètres
+                          </Link>
+                        </nav>
+
+                        <div className="border-t border-gray-100 pt-1 mt-1">
+                          <button
+                            onClick={handleLogout}
+                            className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                          >
+                            <Icon name="logout" size="sm" />
+                            Déconnexion
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  </>
-                )}
-              </div>
+                    </>
+                  )}
+                </div>
+              </>
             ) : (
-              <div className="hidden md:flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate('/login')}
+              <>
+                {/* Cart */}
+                <Link
+                  to="/cart"
+                  className="p-2 text-gray-500 hover:text-primary-800 transition-colors rounded-full hover:bg-gray-100"
+                  aria-label="Panier"
                 >
-                  Connexion
-                </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => navigate('/register')}
-                >
-                  S'inscrire
-                </Button>
-              </div>
+                  <Icon name="cart" size="md" />
+                </Link>
+
+                {/* Auth buttons - Desktop */}
+                <div className="hidden md:flex items-center gap-2 ml-1">
+                  <Button variant="ghost" size="sm" onClick={() => navigate('/login')}>
+                    Connexion
+                  </Button>
+                  <Button variant="primary" size="sm" onClick={() => navigate('/register')}>
+                    S'inscrire
+                  </Button>
+                </div>
+              </>
             )}
 
-            {/* Mobile Menu Button */}
+            {/* Mobile burger */}
             <button
-              className="lg:hidden p-2 text-accent"
+              className="lg:hidden p-2 text-gray-500 hover:text-primary-800 transition-colors rounded-full hover:bg-gray-100 ml-1"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label={isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
               aria-expanded={isMenuOpen}
@@ -253,11 +288,11 @@ function Header() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* ── Mobile Menu ── */}
         {isMenuOpen && (
-          <div className="lg:hidden border-t border-gray-100 py-4 animate-slide-down">
-            {/* Mobile Search */}
-            <div className="mb-4 md:hidden">
+          <div className="lg:hidden border-t border-gray-100 pb-4 animate-slide-down">
+            {/* Search */}
+            <div className="pt-4 pb-3">
               <SearchBar
                 value={searchQuery}
                 onChange={setSearchQuery}
@@ -267,37 +302,96 @@ function Header() {
               />
             </div>
 
-            {/* Mobile Navigation */}
-            <nav className="flex flex-col gap-1" aria-label="Navigation mobile">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.label}
-                  to={link.href}
-                  className={clsx(
-                    'px-3 py-3 rounded-md text-base font-medium transition-colors',
-                    location.pathname === link.href
-                      ? 'bg-primary-50 text-primary-800'
-                      : 'text-accent hover:bg-gray-50'
-                  )}
-                >
-                  {link.label}
-                </Link>
-              ))}
+            <nav className="flex flex-col" aria-label="Navigation mobile">
+              <Link
+                to="/catalog"
+                className={clsx(
+                  'flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium transition-colors',
+                  isActive('/catalog') ? 'bg-primary-50 text-primary-800' : 'text-gray-700 hover:bg-gray-50'
+                )}
+              >
+                Catalogue
+              </Link>
+              <Link
+                to="/catalog"
+                className="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Catégories
+              </Link>
+              <Link
+                to={isAuthenticated ? '/sell' : '/login'}
+                className={clsx(
+                  'flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium transition-colors',
+                  isActive('/sell') ? 'bg-primary-50 text-primary-800' : 'text-primary-800 hover:bg-primary-50'
+                )}
+              >
+                <Icon name="plus" size="sm" />
+                Vendre un article
+              </Link>
 
-              {!isAuthenticated && (
-                <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-gray-100">
-                  <Button
-                    variant="secondary"
-                    fullWidth
-                    onClick={() => navigate('/login')}
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    to="/my-listings"
+                    className={clsx(
+                      'flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium transition-colors',
+                      isActive('/my-listings') ? 'bg-primary-50 text-primary-800' : 'text-gray-700 hover:bg-gray-50'
+                    )}
                   >
+                    <Icon name="tag" size="sm" />
+                    Mes annonces
+                  </Link>
+
+                  <div className="border-t border-gray-100 mt-2 pt-2">
+                    <div className="px-3 py-2 flex items-center gap-3 mb-1">
+                      <Avatar
+                        src={user?.avatarUrl}
+                        alt={user?.username || 'Utilisateur'}
+                        fallback={user?.username}
+                        size="sm"
+                      />
+                      <div>
+                        <p className="font-semibold text-gray-900 text-sm">{user?.username}</p>
+                        <p className="text-xs text-gray-500">{user?.email}</p>
+                      </div>
+                    </div>
+
+                    <Link
+                      to="/profile"
+                      className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <Icon name="user" size="sm" />
+                      Mon profil
+                    </Link>
+                    <Link
+                      to="/favorites"
+                      className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <Icon name="heart" size="sm" />
+                      Mes favoris
+                    </Link>
+                    <Link
+                      to="/settings"
+                      className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <Icon name="settings" size="sm" />
+                      Paramètres
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm text-red-500 hover:bg-red-50 transition-colors"
+                    >
+                      <Icon name="logout" size="sm" />
+                      Déconnexion
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col gap-2 mt-3 pt-3 border-t border-gray-100">
+                  <Button variant="secondary" fullWidth onClick={() => navigate('/login')}>
                     Connexion
                   </Button>
-                  <Button
-                    variant="primary"
-                    fullWidth
-                    onClick={() => navigate('/register')}
-                  >
+                  <Button variant="primary" fullWidth onClick={() => navigate('/register')}>
                     S'inscrire
                   </Button>
                 </div>
