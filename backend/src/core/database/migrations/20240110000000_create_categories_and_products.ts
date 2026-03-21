@@ -1,5 +1,4 @@
-import { Knex } from 'knex';
-import { logger } from '../../../core/logger/index.js';
+import type { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
   // Create categories table
@@ -36,7 +35,6 @@ export async function up(knex: Knex): Promise<void> {
     table.index('created_at');
   });
 
-  logger.info('✅ Categories and Products tables created');
 }
 
 export async function down(knex: Knex): Promise<void> {

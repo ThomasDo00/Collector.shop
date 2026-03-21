@@ -7,6 +7,7 @@ export default defineConfig({
     environment: 'node',
     setupFiles: ['./tests/setup.ts'],
     include: ['tests/**/*.{test,spec}.ts'],
+    exclude: ['tests/integration/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'lcov', 'html'],

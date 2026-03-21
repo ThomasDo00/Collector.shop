@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
-import { GenericContainer, StartedTestContainer } from 'testcontainers';
+import { GenericContainer, StartedTestContainer, Wait } from 'testcontainers';
 import Fastify, { FastifyInstance } from 'fastify';
 import jwt from '@fastify/jwt';
 import sensible from '@fastify/sensible';
@@ -50,6 +50,7 @@ beforeAll(async () => {
       POSTGRES_DB: 'test',
     })
     .withExposedPorts(5432)
+    .withWaitStrategy(Wait.forListeningPorts())
     .start();
 
   const port = container.getMappedPort(5432);
