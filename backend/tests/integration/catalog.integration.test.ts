@@ -72,6 +72,11 @@ beforeAll(async () => {
     },
   });
 
+  // Wait for PostgreSQL to be fully ready (port open ≠ accepting queries)
+  for (let i = 0; i < 15; i++) {
+    try { await db.raw('SELECT 1'); break; } catch { await new Promise(r => setTimeout(r, 1000)); }
+  }
+
   await db.migrate.latest();
 
   fastify = Fastify({ logger: false });
