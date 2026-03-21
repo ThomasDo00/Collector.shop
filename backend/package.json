@@ -20,7 +20,9 @@
     "seed:make": "tsx ../node_modules/knex/bin/cli.js seed:make --knexfile src/core/database/knexfile.ts -x ts",
     "db:migrate": "tsx ../node_modules/knex/bin/cli.js migrate:latest --knexfile src/core/database/knexfile.ts",
     "db:seed": "tsx ../node_modules/knex/bin/cli.js seed:run --knexfile src/core/database/knexfile.ts",
-    "db:setup": "npm run db:migrate && npm run db:seed"
+    "db:setup": "npm run db:migrate && npm run db:seed",
+    "test:integration": "vitest run --config vitest.config.integration.ts",
+    "test:integration:watch": "vitest --config vitest.config.integration.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.995.0",
