@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import authReducer from '@/features/auth/authSlice';
 import ProductDetailPage from './ProductDetailPage';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────
@@ -47,13 +50,22 @@ vi.mock('@/core/logger', () => ({
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
+const store = configureStore({
+  reducer: { auth: authReducer },
+  preloadedState: {
+    auth: { user: null, isAuthenticated: false, isLoading: false, isInitialized: true, error: null, mfaRequired: false, mfaToken: null },
+  },
+});
+
 const renderPage = (id = 'p-1') =>
   render(
-    <MemoryRouter initialEntries={[`/products/${id}`]}>
-      <Routes>
-        <Route path="/products/:id" element={<ProductDetailPage />} />
-      </Routes>
-    </MemoryRouter>,
+    <Provider store={store}>
+      <MemoryRouter initialEntries={[`/products/${id}`]}>
+        <Routes>
+          <Route path="/products/:id" element={<ProductDetailPage />} />
+        </Routes>
+      </MemoryRouter>
+    </Provider>,
   );
 
 // ── Tests ──────────────────────────────────────────────────────────────────
@@ -137,11 +149,13 @@ describe('ProductDetailPage – coverage', () => {
   it('handles missing id gracefully', () => {
     expect(() =>
       render(
-        <MemoryRouter initialEntries={['/products']}>
-          <Routes>
-            <Route path="/products" element={<ProductDetailPage />} />
-          </Routes>
-        </MemoryRouter>,
+        <Provider store={store}>
+          <MemoryRouter initialEntries={['/products']}>
+            <Routes>
+              <Route path="/products" element={<ProductDetailPage />} />
+            </Routes>
+          </MemoryRouter>
+        </Provider>,
       ),
     ).not.toThrow();
   });

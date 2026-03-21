@@ -14,6 +14,7 @@ vi.mock('@/core/logger', () => ({
 }));
 
 import FavoritesPage from './FavoritesPage';
+import { favoritesService } from '@/services/favorites.service';
 
 const mockFavorites = [
   {
@@ -55,23 +56,20 @@ describe('FavoritesPage', () => {
   });
 
   it('renders without crashing', () => {
-    const { favoritesService } = require('@/services/favorites.service');
-    favoritesService.getFavorites.mockResolvedValue([]);
+        favoritesService.getFavorites.mockResolvedValue([]);
     const { container } = renderPage();
     expect(container).toBeTruthy();
   });
 
   it('shows loading state initially', () => {
-    const { favoritesService } = require('@/services/favorites.service');
-    favoritesService.getFavorites.mockResolvedValue([]);
+        favoritesService.getFavorites.mockResolvedValue([]);
     renderPage();
     const body = document.body.textContent ?? '';
     expect(body).toContain('Mes favoris');
   });
 
   it('displays empty state when no favorites', async () => {
-    const { favoritesService } = require('@/services/favorites.service');
-    favoritesService.getFavorites.mockResolvedValue([]);
+        favoritesService.getFavorites.mockResolvedValue([]);
 
     renderPage();
 
@@ -82,8 +80,7 @@ describe('FavoritesPage', () => {
   });
 
   it('shows link to catalog in empty state', async () => {
-    const { favoritesService } = require('@/services/favorites.service');
-    favoritesService.getFavorites.mockResolvedValue([]);
+        favoritesService.getFavorites.mockResolvedValue([]);
 
     renderPage();
 
@@ -94,8 +91,7 @@ describe('FavoritesPage', () => {
   });
 
   it('displays favorites when loaded', async () => {
-    const { favoritesService } = require('@/services/favorites.service');
-    favoritesService.getFavorites.mockResolvedValue(mockFavorites);
+        favoritesService.getFavorites.mockResolvedValue(mockFavorites);
 
     renderPage();
 
@@ -107,8 +103,7 @@ describe('FavoritesPage', () => {
   });
 
   it('shows item count', async () => {
-    const { favoritesService } = require('@/services/favorites.service');
-    favoritesService.getFavorites.mockResolvedValue(mockFavorites);
+        favoritesService.getFavorites.mockResolvedValue(mockFavorites);
 
     renderPage();
 
@@ -119,8 +114,7 @@ describe('FavoritesPage', () => {
   });
 
   it('removes a favorite when button is clicked', async () => {
-    const { favoritesService } = require('@/services/favorites.service');
-    favoritesService.getFavorites.mockResolvedValue([mockFavorites[0]]);
+        favoritesService.getFavorites.mockResolvedValue([mockFavorites[0]]);
     favoritesService.removeFavorite.mockResolvedValue(undefined);
 
     renderPage();
@@ -142,8 +136,7 @@ describe('FavoritesPage', () => {
   });
 
   it('handles error when loading favorites', async () => {
-    const { favoritesService } = require('@/services/favorites.service');
-    favoritesService.getFavorites.mockRejectedValue(new Error('Network error'));
+        favoritesService.getFavorites.mockRejectedValue(new Error('Network error'));
 
     renderPage();
 

@@ -77,7 +77,7 @@ describe('Header', () => {
   it('displays navigation links on desktop', () => {
     renderWithProviders(<Header />);
     expect(screen.getByRole('link', { name: 'Catalogue' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Categories' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Catégories/i })).toBeInTheDocument();
   });
 
   it('displays cart link', () => {
@@ -164,7 +164,7 @@ describe('Header', () => {
     }
     
     // Then find and click logout button
-    const logoutButton = screen.getByRole('button', { name: /deconnexion/i });
+    const logoutButton = screen.getByRole('button', { name: /Déconnexion/i });
     expect(logoutButton).toBeInTheDocument();
     fireEvent.click(logoutButton);
     

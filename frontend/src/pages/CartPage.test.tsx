@@ -18,6 +18,7 @@ vi.mock('@/core/logger', () => ({
 }));
 
 import CartPage from './CartPage';
+import { cartService } from '@/services/cart.service';
 
 const mockCart = {
   items: [
@@ -93,7 +94,6 @@ describe('CartPage', () => {
   });
 
   it('renders without crashing', () => {
-    const { cartService } = require('@/services/cart.service');
     cartService.getCart.mockResolvedValue(mockCart);
     const { container } = renderPage();
     expect(container).toBeTruthy();
@@ -132,7 +132,6 @@ describe('CartPage', () => {
   });
 
   it('displays cart items when loaded', async () => {
-    const { cartService } = require('@/services/cart.service');
     cartService.getCart.mockResolvedValue(mockCart);
 
     renderPage();
@@ -145,7 +144,6 @@ describe('CartPage', () => {
   });
 
   it('shows cart totals', async () => {
-    const { cartService } = require('@/services/cart.service');
     cartService.getCart.mockResolvedValue(mockCart);
 
     renderPage();
@@ -159,7 +157,6 @@ describe('CartPage', () => {
   });
 
   it('shows checkout CTA', async () => {
-    const { cartService } = require('@/services/cart.service');
     cartService.getCart.mockResolvedValue(mockCart);
 
     renderPage();
@@ -171,7 +168,6 @@ describe('CartPage', () => {
   });
 
   it('shows empty cart state when cart has no items', async () => {
-    const { cartService } = require('@/services/cart.service');
     cartService.getCart.mockResolvedValue({ items: [], subtotal: 0, commission: 0, shipping: 0, total: 0 });
 
     renderPage();
@@ -183,7 +179,6 @@ describe('CartPage', () => {
   });
 
   it('calls removeItem when remove button is clicked', async () => {
-    const { cartService } = require('@/services/cart.service');
     cartService.getCart.mockResolvedValue(mockCart);
     cartService.removeItem.mockResolvedValue(undefined);
 
@@ -204,7 +199,6 @@ describe('CartPage', () => {
   });
 
   it('calls clearCart when vider button is clicked', async () => {
-    const { cartService } = require('@/services/cart.service');
     cartService.getCart.mockResolvedValue(mockCart);
     cartService.clearCart.mockResolvedValue(undefined);
 

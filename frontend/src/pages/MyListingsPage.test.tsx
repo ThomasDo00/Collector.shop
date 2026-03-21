@@ -16,6 +16,7 @@ vi.mock('@/core/logger', () => ({
 }));
 
 import MyListingsPage from './MyListingsPage';
+import { apiClient } from '@/services/api/client';
 
 const mockListings = [
   {
@@ -77,23 +78,20 @@ describe('MyListingsPage', () => {
   });
 
   it('renders without crashing', () => {
-    const { apiClient } = require('@/services/api/client');
-    apiClient.get.mockResolvedValue({ data: { data: [] } });
+        apiClient.get.mockResolvedValue({ data: { data: [] } });
     const { container } = renderPage();
     expect(container).toBeTruthy();
   });
 
   it('shows page title', () => {
-    const { apiClient } = require('@/services/api/client');
-    apiClient.get.mockResolvedValue({ data: { data: [] } });
+        apiClient.get.mockResolvedValue({ data: { data: [] } });
     renderPage();
     const body = document.body.textContent ?? '';
     expect(body).toContain('Mes annonces');
   });
 
   it('shows "Publier une annonce" button', async () => {
-    const { apiClient } = require('@/services/api/client');
-    apiClient.get.mockResolvedValue({ data: { data: [] } });
+        apiClient.get.mockResolvedValue({ data: { data: [] } });
 
     renderPage();
 
@@ -104,8 +102,7 @@ describe('MyListingsPage', () => {
   });
 
   it('displays listings when loaded', async () => {
-    const { apiClient } = require('@/services/api/client');
-    apiClient.get.mockResolvedValue({ data: { data: mockListings } });
+        apiClient.get.mockResolvedValue({ data: { data: mockListings } });
 
     renderPage();
 
@@ -117,8 +114,7 @@ describe('MyListingsPage', () => {
   });
 
   it('shows listing count', async () => {
-    const { apiClient } = require('@/services/api/client');
-    apiClient.get.mockResolvedValue({ data: { data: mockListings } });
+        apiClient.get.mockResolvedValue({ data: { data: mockListings } });
 
     renderPage();
 
@@ -129,8 +125,7 @@ describe('MyListingsPage', () => {
   });
 
   it('displays status badge for each listing', async () => {
-    const { apiClient } = require('@/services/api/client');
-    apiClient.get.mockResolvedValue({ data: { data: mockListings } });
+        apiClient.get.mockResolvedValue({ data: { data: mockListings } });
 
     renderPage();
 
@@ -142,8 +137,7 @@ describe('MyListingsPage', () => {
   });
 
   it('shows condition labels', async () => {
-    const { apiClient } = require('@/services/api/client');
-    apiClient.get.mockResolvedValue({ data: { data: mockListings } });
+        apiClient.get.mockResolvedValue({ data: { data: mockListings } });
 
     renderPage();
 
@@ -155,8 +149,7 @@ describe('MyListingsPage', () => {
   });
 
   it('shows empty state when no listings', async () => {
-    const { apiClient } = require('@/services/api/client');
-    apiClient.get.mockResolvedValue({ data: { data: [] } });
+        apiClient.get.mockResolvedValue({ data: { data: [] } });
 
     renderPage();
 
@@ -167,8 +160,7 @@ describe('MyListingsPage', () => {
   });
 
   it('calls the correct API endpoint', async () => {
-    const { apiClient } = require('@/services/api/client');
-    apiClient.get.mockResolvedValue({ data: { data: [] } });
+        apiClient.get.mockResolvedValue({ data: { data: [] } });
 
     renderPage();
 
@@ -178,8 +170,7 @@ describe('MyListingsPage', () => {
   });
 
   it('handles API error gracefully', async () => {
-    const { apiClient } = require('@/services/api/client');
-    apiClient.get.mockRejectedValue(new Error('Network error'));
+        apiClient.get.mockRejectedValue(new Error('Network error'));
 
     renderPage();
 

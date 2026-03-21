@@ -2,13 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { favoritesService } from './favorites.service';
 import { apiClient } from './api/client';
 
-vi.mock('./api/client', () => ({
-  apiClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+vi.mock('./api/client', () => {
+  const mock = { get: vi.fn(), post: vi.fn(), delete: vi.fn() };
+  return { apiClient: mock, default: mock };
+});
 
 describe('favoritesService', () => {
   beforeEach(() => {
