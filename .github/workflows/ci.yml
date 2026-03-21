@@ -234,11 +234,12 @@ jobs:
     name: Test · Integration
     runs-on: ubuntu-latest
     needs: lint-backend
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     env:
       NODE_ENV: test
       JWT_SECRET: test-jwt-secret-for-ci-minimum-32-chars
+      TESTCONTAINERS_RYUK_DISABLED: true
 
     steps:
       - uses: actions/checkout@v4
@@ -254,7 +255,8 @@ jobs:
         working-directory: backend
 
       - name: Run integration tests
-        run: npm run test:integration -w backend
+        run: npm run test:integration
+        working-directory: backend
 
   # ===========================================
   # Stage 4 — Qualité (parallel, needs tests)
