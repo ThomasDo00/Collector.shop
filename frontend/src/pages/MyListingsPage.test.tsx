@@ -78,20 +78,20 @@ describe('MyListingsPage', () => {
   });
 
   it('renders without crashing', () => {
-        apiClient.get.mockResolvedValue({ data: { data: [] } });
+        vi.mocked(apiClient.get).mockResolvedValue({ data: { data: [] } });
     const { container } = renderPage();
     expect(container).toBeTruthy();
   });
 
   it('shows page title', () => {
-        apiClient.get.mockResolvedValue({ data: { data: [] } });
+        vi.mocked(apiClient.get).mockResolvedValue({ data: { data: [] } });
     renderPage();
     const body = document.body.textContent ?? '';
     expect(body).toContain('Mes annonces');
   });
 
   it('shows "Publier une annonce" button', async () => {
-        apiClient.get.mockResolvedValue({ data: { data: [] } });
+        vi.mocked(apiClient.get).mockResolvedValue({ data: { data: [] } });
 
     renderPage();
 
@@ -102,7 +102,7 @@ describe('MyListingsPage', () => {
   });
 
   it('displays listings when loaded', async () => {
-        apiClient.get.mockResolvedValue({ data: { data: mockListings } });
+        vi.mocked(apiClient.get).mockResolvedValue({ data: { data: mockListings } });
 
     renderPage();
 
@@ -114,7 +114,7 @@ describe('MyListingsPage', () => {
   });
 
   it('shows listing count', async () => {
-        apiClient.get.mockResolvedValue({ data: { data: mockListings } });
+        vi.mocked(apiClient.get).mockResolvedValue({ data: { data: mockListings } });
 
     renderPage();
 
@@ -125,7 +125,7 @@ describe('MyListingsPage', () => {
   });
 
   it('displays status badge for each listing', async () => {
-        apiClient.get.mockResolvedValue({ data: { data: mockListings } });
+        vi.mocked(apiClient.get).mockResolvedValue({ data: { data: mockListings } });
 
     renderPage();
 
@@ -137,7 +137,7 @@ describe('MyListingsPage', () => {
   });
 
   it('shows condition labels', async () => {
-        apiClient.get.mockResolvedValue({ data: { data: mockListings } });
+        vi.mocked(apiClient.get).mockResolvedValue({ data: { data: mockListings } });
 
     renderPage();
 
@@ -149,7 +149,7 @@ describe('MyListingsPage', () => {
   });
 
   it('shows empty state when no listings', async () => {
-        apiClient.get.mockResolvedValue({ data: { data: [] } });
+        vi.mocked(apiClient.get).mockResolvedValue({ data: { data: [] } });
 
     renderPage();
 
@@ -160,7 +160,7 @@ describe('MyListingsPage', () => {
   });
 
   it('calls the correct API endpoint', async () => {
-        apiClient.get.mockResolvedValue({ data: { data: [] } });
+        vi.mocked(apiClient.get).mockResolvedValue({ data: { data: [] } });
 
     renderPage();
 
@@ -170,7 +170,7 @@ describe('MyListingsPage', () => {
   });
 
   it('handles API error gracefully', async () => {
-        apiClient.get.mockRejectedValue(new Error('Network error'));
+        vi.mocked(apiClient.get).mockRejectedValue(new Error('Network error'));
 
     renderPage();
 
