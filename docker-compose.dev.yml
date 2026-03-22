@@ -16,9 +16,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: collector
-      POSTGRES_PASSWORD: 4a507ce0b925c6b1e9929f5e9c58cf85
-      POSTGRES_DB: collector_local
+      POSTGRES_USER: ${POSTGRES_USER:-collector}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-collector_local}
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     healthcheck:
@@ -50,8 +50,8 @@ services:
       - "9000:9000"
       - "9001:9001"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: f583fd028d7dde5a5966b78a4056ea9f
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - minio_dev_data:/data
     command: server /data --console-address ":9001"

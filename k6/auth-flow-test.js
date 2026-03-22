@@ -4,7 +4,7 @@ import { Trend } from 'k6/metrics';
 
 const BASE_URL = __ENV.BASE_URL || 'https://collector-shop.online';
 const LOAD_TEST_EMAIL = 'loadtest@collector-shop.online';
-const LOAD_TEST_PASSWORD = __ENV.LOAD_TEST_PASSWORD || 'LoadTest123!';
+const LOAD_TEST_PASSWORD = __ENV.LOAD_TEST_PASSWORD;
 
 // Custom metrics per endpoint category
 const loginDuration = new Trend('login_duration', true);
@@ -85,7 +85,7 @@ export default function () {
     const body = JSON.parse(productsRes.body);
     const items = Array.isArray(body) ? body : (body.data || body.items || body.products || []);
     if (items.length > 0) {
-      productId = items[Math.floor(Math.random() * items.length)].id;
+      productId = items[Math.floor(Math.random() * items.length)].id; // NOSONAR — intentional in load test
     }
   } catch (_) {
     // no-op

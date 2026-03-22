@@ -160,13 +160,13 @@ function SearchBar({
 
       {/* Suggestions dropdown */}
       {showSuggestions && filteredSuggestions.length > 0 && (
-        <ul
+        <div
           id="search-suggestions"
           role="listbox"
           className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
         >
           {filteredSuggestions.slice(0, 5).map((suggestion, index) => (
-            <li
+            <div
               key={suggestion}
               role="option"
               aria-selected={index === selectedIndex}
@@ -189,9 +189,9 @@ function SearchBar({
                 <Icon name="search" size="sm" className="text-gray-400" />
                 <span>{suggestion}</span>
               </div>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );
