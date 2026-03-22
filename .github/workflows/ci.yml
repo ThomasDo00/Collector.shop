@@ -400,7 +400,7 @@ jobs:
             -Dsonar.projectKey=ThomasDo00_Collector.shop \
             -Dsonar.organization=cesimaalsip5 \
             -Dsonar.sources=. \
-            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/.github/** \
+            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/.github/**,playwright-report/**,test-results/**,k6/** \
             -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info,backend/coverage/lcov.info \
             -Dsonar.host.url=https://sonarcloud.io
 
