@@ -6,7 +6,18 @@ import sensible from '@fastify/sensible';
 import multipart from '@fastify/multipart';
 import knex, { Knex } from 'knex';
 import path from 'node:path';
+import fs from 'node:fs/promises';
 import bcrypt from 'bcrypt';
+
+class TsMigrationSource {
+  constructor(private dir: string) {}
+  async getMigrations() {
+    const files = await fs.readdir(this.dir);
+    return files.filter(f => f.endsWith('.ts')).sort();
+  }
+  getMigrationName(migration: string) { return migration; }
+  async getMigration(migration: string) { return import(path.join(this.dir, migration)); }
+}
 
 let container: StartedTestContainer;
 let db: Knex;
@@ -66,9 +77,7 @@ beforeAll(async () => {
     connection: connectionString,
     migrations: {
       tableName: 'knex_migrations',
-      directory: path.resolve(process.cwd(), 'src/core/database/migrations'),
-      extension: 'ts',
-      loadExtensions: ['.ts'],
+      migrationSource: new TsMigrationSource(path.resolve(process.cwd(), 'src/core/database/migrations')),
     },
   });
 
