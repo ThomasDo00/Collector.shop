@@ -36,8 +36,8 @@
     "sonar": "sonar-scanner",
     "test:coverage": "npm run test:coverage -w frontend && npm run test:coverage -w backend",
     "test:integration": "npm run test:integration -w backend",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e": "npx playwright test",
+    "test:e2e:ui": "npx playwright test --ui"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
