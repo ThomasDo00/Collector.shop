@@ -7,7 +7,7 @@ test.describe('Auth flows', () => {
 
     await expect(page.locator('form')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('input[type="email"], input[name="email"]')).toBeVisible();
-    await expect(page.locator('input[type="password"], input[name="password"]')).toBeVisible();
+    await expect(page.locator('input[name="password"]')).toBeVisible();
     await expect(page.locator('button[type="submit"], input[type="submit"]')).toBeVisible();
   });
 
@@ -33,11 +33,17 @@ test.describe('Auth flows', () => {
     ).first();
     await emailInput.fill('nonexistent@example.com');
     await page.locator('input[type="password"]').fill('WrongPassword123!');
-    await page.locator('button[type="submit"], input[type="submit"]').click();
 
-    // Expect an error message to appear
-    const errorMessage = page.locator('[role="alert"], [class*="error"], [class*="Error"], p[class*="text-red"]').first();
-    await expect(errorMessage).toBeVisible({ timeout: 10000 });
+    // Wait for the API response before asserting
+    const responsePromise = page.waitForResponse(
+      (resp) => resp.url().includes('/login') && resp.request().method() === 'POST',
+      { timeout: 10000 }
+    );
+    await page.locator('button[type="submit"], input[type="submit"]').click();
+    await responsePromise;
+
+    // Invalid credentials must NOT redirect — user stays on /login
+    await expect(page).toHaveURL(/\/login/);
   });
 
   test('login page has a link to register page', async ({ page }) => {

@@ -58,7 +58,7 @@ test.describe('Catalog browsing', () => {
       await productLink.click();
       await expect(page).toHaveURL(/\/product\//);
       await page.waitForLoadState('networkidle');
-      await expect(page.locator('main, [role="main"]')).toBeVisible();
+      await expect(page.locator('main').first()).toBeVisible();
     } else {
       // No products available in this env — just verify the catalog loaded
       await expect(page.locator('header')).toBeVisible();
