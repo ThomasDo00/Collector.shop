@@ -238,7 +238,7 @@ function HomePage() {
               <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Icon name="shield" size="xl" />
               </div>
-              <h4 className="font-semibold text-lg mb-2">Paiement securise</h4>
+              <h4 className="font-semibold text-lg mb-2 text-white">Paiement securise</h4>
               <p className="text-white/70 text-sm">
                 Toutes les transactions sont protegees par notre systeme de paiement securise.
               </p>
@@ -248,7 +248,7 @@ function HomePage() {
               <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Icon name="check" size="xl" />
               </div>
-              <h4 className="font-semibold text-lg mb-2">Vendeurs verifies</h4>
+              <h4 className="font-semibold text-lg mb-2 text-white">Vendeurs verifies</h4>
               <p className="text-white/70 text-sm">
                 Chaque vendeur est verifie et note par notre communaute.
               </p>
@@ -258,7 +258,7 @@ function HomePage() {
               <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Icon name="truck" size="xl" />
               </div>
-              <h4 className="font-semibold text-lg mb-2">Livraison suivie</h4>
+              <h4 className="font-semibold text-lg mb-2 text-white">Livraison suivie</h4>
               <p className="text-white/70 text-sm">
                 Suivez votre commande en temps reel jusqu'a la livraison.
               </p>
@@ -268,7 +268,7 @@ function HomePage() {
               <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Icon name="chat" size="xl" />
               </div>
-              <h4 className="font-semibold text-lg mb-2">Support 7j/7</h4>
+              <h4 className="font-semibold text-lg mb-2 text-white">Support 7j/7</h4>
               <p className="text-white/70 text-sm">
                 Notre equipe est disponible pour repondre a toutes vos questions.
               </p>
