@@ -12,6 +12,8 @@ export interface LogoProps {
   linkToHome?: boolean;
   /** Additional class names */
   className?: string;
+  /** Override text color (defaults to text-accent) */
+  textClassName?: string;
 }
 
 const sizeStyles: Record<LogoSize, { icon: string; text: string }> = {
@@ -28,6 +30,7 @@ function Logo({
   showText = true,
   linkToHome = true,
   className,
+  textClassName,
 }: Readonly<LogoProps>) {
   const logoContent = (
     <div
@@ -49,7 +52,8 @@ function Logo({
       {showText && (
         <span
           className={clsx(
-            'font-display font-semibold text-accent tracking-tight',
+            'font-display font-semibold tracking-tight',
+            textClassName ?? 'text-accent',
             sizeStyles[size].text
           )}
         >

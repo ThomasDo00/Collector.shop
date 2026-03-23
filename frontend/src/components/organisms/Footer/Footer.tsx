@@ -48,7 +48,7 @@ function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Brand Column */}
           <div className="col-span-2 md:col-span-4 lg:col-span-1">
-            <Logo size="md" linkToHome={false} />
+            <Logo size="md" linkToHome={false} textClassName="text-gray-400" />
             <p className="mt-4 text-gray-400 text-sm max-w-xs">
               La marketplace de reference pour les collectionneurs passionnes.
               Achetez et vendez vos pieces rares en toute securite.
