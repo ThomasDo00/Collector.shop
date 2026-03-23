@@ -21,8 +21,6 @@ const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
 const FavoritesPage = lazy(() => import('@/pages/FavoritesPage'));
 const CartPage = lazy(() => import('@/pages/CartPage'));
 const MyListingsPage = lazy(() => import('@/pages/MyListingsPage'));
-// TODO(temp): page admin temporaire — à supprimer après nettoyage prod
-const AdminProductsPage = lazy(() => import('@/pages/AdminProductsPage'));
 
 // Page loader component
 function PageLoader() {
@@ -76,7 +74,6 @@ function App() {
             <Route path="/favorites" element={<FavoritesPage />} />
             <Route path="/my-listings" element={<MyListingsPage />} />
             <Route path="/sell" element={<CreateListingPage />} />
-            <Route path="/admin/products" element={<AdminProductsPage />} />
           </Route>
 
           {/* Checkout has its own layout */}

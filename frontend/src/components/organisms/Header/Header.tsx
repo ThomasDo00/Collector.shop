@@ -240,13 +240,6 @@ function Header() {
                         </nav>
 
                         <div className="border-t border-gray-100 pt-1 mt-1">
-                          <Link
-                            to="/admin/products"
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-orange-600 hover:bg-orange-50 transition-colors"
-                          >
-                            <Icon name="trash" size="sm" />
-                            Admin — Supprimer produits
-                          </Link>
                           <button
                             onClick={handleLogout}
                             className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
@@ -383,13 +376,6 @@ function Header() {
                     >
                       <Icon name="settings" size="sm" />
                       Paramètres
-                    </Link>
-                    <Link
-                      to="/admin/products"
-                      className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-orange-600 hover:bg-orange-50 transition-colors"
-                    >
-                      <Icon name="trash" size="sm" />
-                      Admin — Supprimer produits
                     </Link>
                     <button
                       onClick={handleLogout}
