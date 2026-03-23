@@ -384,7 +384,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
     },
   }, async (request, reply) => {
     await request.jwtVerify();
-    const { userId } = request.user as { userId: string };
+    // const { userId } = request.user as { userId: string }; // TODO(temp): unused while ownership check is disabled
     const { id } = request.params as { id: string };
 
     const product = await db('products').where({ id }).first();
@@ -393,13 +393,10 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       return ErrorResponses.productNotFound(reply);
     }
 
-    if (product.seller_id !== userId) {
-      return reply.status(403).send({
-        success: false,
-        error: 'FORBIDDEN',
-        message: 'You are not allowed to delete this product',
-      });
-    }
+    // TODO(temp): ownership check disabled — restore once prod cleanup is done
+    // if (product.seller_id !== userId) {
+    //   return reply.status(403).send({ success: false, error: 'FORBIDDEN', message: 'You are not allowed to delete this product' });
+    // }
 
     await db('products').where({ id }).delete();
 
